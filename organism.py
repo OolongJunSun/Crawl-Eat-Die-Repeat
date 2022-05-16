@@ -118,7 +118,6 @@ class Body():
     def choose_parent(self) -> None:
         parent_id = random.choice(list(self.structure))
 
-        print(len(self.structure[parent_id]["children"]))
         if len(self.structure[parent_id]["children"]) >= 2:
             parent_id = self.choose_parent()
         

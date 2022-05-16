@@ -1,3 +1,4 @@
+import math
 import random
 import pymunk
 from dataclasses import dataclass
@@ -12,7 +13,7 @@ class Head():
     def __post_init__(self) -> None:
         self.HEAD_POSITION = (256, 256)
         self.HEAD_MASS = 100
-        self.HEAD_RADIUS = 15
+        self.HEAD_RADIUS = 10
         self.CONNECTION_POINTS = 8
 
         self.create()
@@ -45,11 +46,10 @@ class Limb():
         return hash(self.id)
 
     def __post_init__(self):
-        self.MAX_LENGTH = 32
+        self.MAX_LENGTH = 48
+        self.MIN_LENGTH = 12
         self.MAX_RADIUS = 3
-        self.MAX_MASS = 50
         self.MIN_RADIUS = 1
-        self.MIN_MASS = 10
 
         self.hex_to_bin()
         # print(self.gene_bin)
@@ -64,17 +64,28 @@ class Limb():
     def normalize(self, char) -> float:
         return (int(char, 2) / 2 ** len(char))
 
-    def scale(self, norm_value, max) -> int:
-        return norm_value * max
+    def scale(self, norm_value, MAX, MIN) -> int:
+
+        return max(MIN, norm_value * MAX)
 
     def decode_gene(self) -> None:
         v_x = self.gene_bin[:4]
         v_y = self.gene_bin[4:8]
         radius = self.gene_bin[8:10]
-        mass = self.gene_bin[10:]
+        # mass encoding not needed since we can derive it from
+        # length and radius. weve got 2 free encoding bits. 
+        mass = self.gene_bin[10:]       
 
-        self.v_x = self.scale(self.normalize(v_x), self.MAX_LENGTH)
-        self.v_y = self.scale(self.normalize(v_y), self.MAX_LENGTH)
+        self.v_x = self.scale(
+            self.normalize(v_x), 
+            self.MAX_LENGTH,
+            self.MIN_LENGTH
+        )
+        self.v_y = self.scale(
+            self.normalize(v_y),
+            self.MAX_LENGTH,
+            self.MIN_LENGTH
+        )
 
         # determine orientation of limb randomly for now.
         # in the future the orientation will be encoded in the gene
@@ -86,11 +97,14 @@ class Limb():
         if not y_direction:
             self.v_y = -self.v_y
 
-        self.radius = self.scale(self.normalize(radius), self.MAX_RADIUS)
-        self.radius = int(max(self.MIN_RADIUS, self.radius))
+        self.radius = self.scale(
+            self.normalize(radius),
+            self.MAX_RADIUS,
+            self.MIN_RADIUS
+        )
 
-        self.mass = self.scale(self.normalize(mass), self.MAX_MASS)
-        self.mass = int(max(self.MIN_MASS, self.mass))
+        length = math.sqrt(self.v_x**2 + self.v_y**2)
+        self.mass = int(self.radius*length)
        
         # we nee to do this as a consequence of pymunks quirky
         # center of gravity calcs when creating segments

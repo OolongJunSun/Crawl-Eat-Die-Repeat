@@ -10,7 +10,7 @@ class Environment():
         self.draw_options = pymunk.pygame_util.DrawOptions(self.window)
 
         self.space = pymunk.Space()
-        self.space.gravity = (0,100)
+        self.space.gravity = (0,0)
 
         self.clock = pygame.time.Clock()
         self.fps = 60
@@ -35,3 +35,4 @@ class Environment():
             shape = pymunk.Poly.create_box(body, size)
             self.space.add(body, shape)   
 
+            shape.filter = pymunk.ShapeFilter(categories=2, mask=1)
