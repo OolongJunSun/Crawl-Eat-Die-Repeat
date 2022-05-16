@@ -83,6 +83,14 @@ class Body():
 
         self.add_part_to_structure(part, joint, endpoints, self.head.id)
 
+    def choose_parent(self) -> None:
+        parent_id = random.choice(list(self.structure))
+
+        if len(self.structure[parent_id]["children"]) >= 2:
+            parent_id = self.choose_parent()
+        
+        return parent_id    
+
     """
     how can we implicitly encode limb position into the genome
     the position of the limb is important. A limb that is usefull
@@ -94,34 +102,35 @@ class Body():
     def design_body(self) -> None:
         self.add_torso()
         for part in self.body_parts[1:]:
-            parent_id = random.choice(list(self.structure))
+            parent_id = self.choose_parent()
+
+            # parent_id = random.choice(list(self.structure))
             parent = self.structure[parent_id]["obj"]                   
 
             endpoint_idx = random.randint(0,1)
-            x_direction = random.randint(0,1)
-            y_direction = random.randint(0,1)
 
-            if not x_direction:
-                part.v_x = -part.v_x
-            if not y_direction:
-                part.v_y = -part.v_y
+            print(self.structure[parent_id]["endpoints"])
 
+            print(part.v_x, part.v_y)
             position = self.structure[parent_id]["endpoints"][endpoint_idx]
 
+            # print(position)
             part.matter.position = (position[0] + part.v_x/2,
                                     position[1] + part.v_y/2)
 
             endpoints = [
                 (part.matter.position[0] - part.v_x/2,
-                 part.matter.position[1] + part.v_y/2),
-                (part.matter.position[0] - part.v_x/2,
+                 part.matter.position[1] - part.v_y/2),
+                (part.matter.position[0] + part.v_x/2,
                  part.matter.position[1] + part.v_y/2)
             ]
+
+            print(endpoints)
 
             joint = pymunk.constraints.PivotJoint(
                 part.matter, 
                 parent.matter, 
-                endpoints[endpoint_idx]
+                position
             )
 
             joint.collide_bodies = False
@@ -129,6 +138,8 @@ class Body():
             self.add_part_to_structure(part, joint, endpoints, parent_id)
 
             self.structure[parent_id]["children"].append(part.id)
+
+        
 
 
     def construct_body(self):

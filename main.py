@@ -10,7 +10,7 @@ if __name__ == "__main__":
     env = Environment()
     env.create_outer_boundaries()
     
-    genome = "fff a12 493 a69 b38 931 129 420"
+    genome = "fff 8b5 53f fff 8b5 53f fff 8b5 53f"
     adam = Organism(genome)
 
     env.space.add(adam.body.head.matter, adam.body.head.shape)
