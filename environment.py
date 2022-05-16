@@ -10,10 +10,10 @@ class Environment():
         self.draw_options = pymunk.pygame_util.DrawOptions(self.window)
 
         self.space = pymunk.Space()
-        self.space.gravity = (0,10)
+        self.space.gravity = (0,100)
 
         self.clock = pygame.time.Clock()
-        self.fps = 30
+        self.fps = 60
         self.dt = 1/self.fps
 
     def draw(self):
@@ -34,3 +34,4 @@ class Environment():
             body.position = pos
             shape = pymunk.Poly.create_box(body, size)
             self.space.add(body, shape)   
+

@@ -46,9 +46,9 @@ class Limb():
 
     def __post_init__(self):
         self.MAX_LENGTH = 32
-        self.MAX_RADIUS = 4
+        self.MAX_RADIUS = 3
         self.MAX_MASS = 50
-        self.MIN_RADIUS = 2
+        self.MIN_RADIUS = 1
         self.MIN_MASS = 10
 
         self.hex_to_bin()

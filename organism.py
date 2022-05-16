@@ -29,23 +29,21 @@ class Body():
         # at the end of the limb generation we terminate the tree branches
         # with None -> indicating there are no more parts to add
         self.structure = {
-            # part.id: {
-            #     "obj": part,
-            #     "parent": parent_id,
-            #     "joint": joint,
-            #     "endpoints": endpoints
-            #     "children": []
-            # }
+            self.head.id: {
+                "obj": self.head,
+                "parent": None,
+                "children": []
+            }
         }
  
         self.body_parts = []
         self.genes = self.genome.split(" ")
 
-        self.add_limbs()
+        self.generate_limbs()
         self.design_body()
 
 
-    def add_limbs(self) -> None:
+    def generate_limbs(self) -> None:
         for gene in self.genes:
             limb = Limb(gene, str(uuid.uuid4()), self.head)
             self.body_parts.append(limb)
@@ -83,9 +81,44 @@ class Body():
 
         self.add_part_to_structure(part, joint, endpoints, self.head.id)
 
+        self.structure[self.head.id]["children"].append(part.id)
+    
+    def add_limb(self, parent_id, part):
+        # parent_id = random.choice(list(self.structure))
+        parent = self.structure[parent_id]["obj"]                   
+
+        endpoint_idx = random.randint(0,1)
+
+        position = self.structure[parent_id]["endpoints"][endpoint_idx]
+
+        # print(position)
+        part.matter.position = (position[0] + part.v_x/2,
+                                position[1] + part.v_y/2)
+
+        endpoints = [
+            (part.matter.position[0] - part.v_x/2,
+                part.matter.position[1] - part.v_y/2),
+            (part.matter.position[0] + part.v_x/2,
+                part.matter.position[1] + part.v_y/2)
+        ]
+
+        joint = pymunk.constraints.PivotJoint(
+            part.matter, 
+            parent.matter, 
+            position
+        )
+
+        joint.collide_bodies = False
+
+        self.add_part_to_structure(part, joint, endpoints, parent_id)
+
+        self.structure[parent_id]["children"].append(part.id)
+
+
     def choose_parent(self) -> None:
         parent_id = random.choice(list(self.structure))
 
+        print(len(self.structure[parent_id]["children"]))
         if len(self.structure[parent_id]["children"]) >= 2:
             parent_id = self.choose_parent()
         
@@ -104,43 +137,12 @@ class Body():
         for part in self.body_parts[1:]:
             parent_id = self.choose_parent()
 
-            # parent_id = random.choice(list(self.structure))
-            parent = self.structure[parent_id]["obj"]                   
-
-            endpoint_idx = random.randint(0,1)
-
-            print(self.structure[parent_id]["endpoints"])
-
-            print(part.v_x, part.v_y)
-            position = self.structure[parent_id]["endpoints"][endpoint_idx]
-
-            # print(position)
-            part.matter.position = (position[0] + part.v_x/2,
-                                    position[1] + part.v_y/2)
-
-            endpoints = [
-                (part.matter.position[0] - part.v_x/2,
-                 part.matter.position[1] - part.v_y/2),
-                (part.matter.position[0] + part.v_x/2,
-                 part.matter.position[1] + part.v_y/2)
-            ]
-
-            print(endpoints)
-
-            joint = pymunk.constraints.PivotJoint(
-                part.matter, 
-                parent.matter, 
-                position
-            )
-
-            joint.collide_bodies = False
-
-            self.add_part_to_structure(part, joint, endpoints, parent_id)
-
-            self.structure[parent_id]["children"].append(part.id)
+            if isinstance(self.structure[parent_id]["obj"], Head):
+                self.add_torso()
+            else:
+                self.add_limb(parent_id, part)
 
         
-
 
     def construct_body(self):
         pass
