@@ -23,6 +23,8 @@ if __name__ == "__main__":
         env.space.add(part["obj"].matter, 
                       part["obj"].shape)
 
+        print(part["children"])
+        print("")
         part["obj"].shape.filter = pymunk.ShapeFilter(categories=1, mask=2)
 
         if isinstance(part["obj"], Limb):

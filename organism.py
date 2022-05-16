@@ -45,7 +45,7 @@ class Body():
 
     def generate_limbs(self) -> None:
         for gene in self.genes:
-            limb = Limb(gene, str(uuid.uuid4()), self.head)
+            limb = Limb(gene, str(uuid.uuid4()))
             self.body_parts.append(limb)
 
     def add_part_to_structure(self, part, joint, endpoints, parent_id) -> None:
@@ -85,9 +85,15 @@ class Body():
     
     def add_limb(self, parent_id, part):
         # parent_id = random.choice(list(self.structure))
-        parent = self.structure[parent_id]["obj"]                   
+        parent = self.structure[parent_id]["obj"]       
 
-        endpoint_idx = random.randint(0,1)
+        # very bad way of checking if the parent object is the torso
+        # hesitant to add a new field to struct but might have to 
+        grandparent_id = self.structure[parent_id]["parent"]
+        if isinstance(self.structure[grandparent_id]["obj"], Head): 
+            endpoint_idx = random.randint(0,1)
+        else:
+            endpoint_idx = 1
 
         position = self.structure[parent_id]["endpoints"][endpoint_idx]
 

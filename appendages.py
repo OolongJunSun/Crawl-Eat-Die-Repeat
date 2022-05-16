@@ -3,59 +3,8 @@ import random
 import pymunk
 from dataclasses import dataclass
 
-@dataclass
-class Head():
-    id: str
 
-    def __hash__(self):
-        return hash(self.id)
-
-    def __post_init__(self) -> None:
-        self.HEAD_POSITION = (256, 256)
-        self.HEAD_MASS = 100
-        self.HEAD_RADIUS = 10
-        self.CONNECTION_POINTS = 8
-
-        self.create()
-
-        # for i in range(self.CONNECTION_POINTS):
-        #     theta = int(i * (360 / self.CONNECTION_POINTS))
-             
-        #     print(theta)
-            
-
-    def create(self) -> None:
-        self.matter = pymunk.Body()
-        self.matter.position = self.HEAD_POSITION
-
-        self.shape = pymunk.Circle(self.matter, self.HEAD_RADIUS)
-        self.shape.mass = self.HEAD_MASS
-        self.shape.color = (0, 0, 0, 100)
-
-
-@dataclass
-class Limb():
-    gene: str
-    id: str 
-    v_x: int = 0
-    v_y: int = 0
-    radius: int = 0
-    mass: int = 0
-
-    def __hash__(self):
-        return hash(self.id)
-
-    def __post_init__(self):
-        self.MAX_LENGTH = 48
-        self.MIN_LENGTH = 12
-        self.MAX_RADIUS = 3
-        self.MIN_RADIUS = 1
-
-        self.hex_to_bin()
-        # print(self.gene_bin)
-        self.decode_gene()
-        self.create()
-        
+class Organ():
     def hex_to_bin(self) -> None:
         scale = 16  ## equals to hexadecimal
         n_bits = 4
@@ -65,16 +14,47 @@ class Limb():
         return (int(char, 2) / 2 ** len(char))
 
     def scale(self, norm_value, MAX, MIN) -> int:
-
         return max(MIN, norm_value * MAX)
+
+@dataclass
+class Head(Organ):
+    id: str
+    HEAD_POSITION: tuple = (256, 256)
+    HEAD_MASS: int = 1000
+    HEAD_RADIUS: int = 10
+    CONNECTION_POINTS: int = 8
+
+    def __post_init__(self) -> None:
+        self.create()
+            
+    def create(self) -> None:
+        self.matter = pymunk.Body()
+        self.matter.position = self.HEAD_POSITION
+
+        self.shape = pymunk.Circle(self.matter, self.HEAD_RADIUS)
+        self.shape.mass = self.HEAD_MASS
+        self.shape.color = (0, 0, 0, 100)
+
+@dataclass
+class Limb(Organ):
+    gene: str
+    id: str 
+    MAX_LENGTH: int = 48
+    MIN_LENGTH: int = 12
+    MAX_RADIUS: int = 4
+    MIN_RADIUS: int = 1
+
+    def __post_init__(self):
+        self.hex_to_bin()
+        self.decode_gene()
+        self.create()
 
     def decode_gene(self) -> None:
         v_x = self.gene_bin[:4]
         v_y = self.gene_bin[4:8]
         radius = self.gene_bin[8:10]
-        # mass encoding not needed since we can derive it from
-        # length and radius. weve got 2 free encoding bits. 
-        mass = self.gene_bin[10:]       
+        x_direction = self.gene_bin[10]
+        y_direction = self.gene_bin[11]
 
         self.v_x = self.scale(
             self.normalize(v_x), 
@@ -87,11 +67,6 @@ class Limb():
             self.MIN_LENGTH
         )
 
-        # determine orientation of limb randomly for now.
-        # in the future the orientation will be encoded in the gene
-        x_direction = random.randint(0,1)
-        y_direction = random.randint(0,1)
-        
         if not x_direction:
             self.v_x = -self.v_x
         if not y_direction:
@@ -126,3 +101,14 @@ class Limb():
 
         self.shape.mass = self.mass
         self.shape.color = (0,0,0,100)
+
+
+@dataclass
+class Hand(Organ):
+    gene: str
+    id: str
+    grip_strength: float = 0
+    endurance: float = 0
+    speed: float = 0
+
+    

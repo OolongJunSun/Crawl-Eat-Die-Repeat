@@ -10,7 +10,7 @@ class Environment():
         self.draw_options = pymunk.pygame_util.DrawOptions(self.window)
 
         self.space = pymunk.Space()
-        self.space.gravity = (0,0)
+        self.space.gravity = (0,25)
 
         self.clock = pygame.time.Clock()
         self.fps = 60
