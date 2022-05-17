@@ -1,37 +1,38 @@
+import random
 import pygame
 import pymunk
-import random
+
 from environment import Environment
-from organism import Organism, Limb
+from organism import Organism
 
 if __name__ == "__main__":
     pygame.init()
 
-    run = True
-
     env = Environment()
-    env.create_outer_boundaries()
-    
-    genome = '%030x' % random.randrange(16**30)
-    genome =  ' '.join(genome[i:i+3] for i in range(0, len(genome), 3))
-    print(genome)
-    # genome = "fff 8b5 53f fff 8b5 53f fff"
+
+    # in the future genomes will be produced by both
+    # a) random function
+    # b) reproduction
+    gene_length = 4
+    genome = '%052x' % random.randrange(16**52)
+    genome =  ' '.join(genome[i:i+gene_length] for i in range(0, len(genome), gene_length))
+
     adam = Organism(genome)
+
+    env.space.add(adam.body.head.matter, adam.body.head.shape)
+
+    adam.body.head.shape.filter = pymunk.ShapeFilter(group=2)
 
 
     for part in adam.body.structure.values():
-        env.space.add(part["obj"].matter, 
-                      part["obj"].shape)
+        env.space.add(part["obj"].matter, part["obj"].shape)
 
-        print(part["children"])
-        print("")
-        part["obj"].shape.filter = pymunk.ShapeFilter(categories=1, mask=2)
-
-        if isinstance(part["obj"], Limb):
-            env.space.add(part["joint"])
+        part["obj"].shape.filter = pymunk.ShapeFilter(group=2)
         
-    
-    while run:
+        for joint in part["joints"]:
+            env.space.add(joint)
+
+    while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 ERROR_KEK

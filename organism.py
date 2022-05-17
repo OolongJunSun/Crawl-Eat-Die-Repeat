@@ -1,23 +1,32 @@
+
 import math
 import uuid
-import pymunk
 import random
-
+import pymunk
+from typing import List
+from pymunk.vec2d import Vec2d
 from dataclasses import dataclass
 from appendages import Head, Limb
 
-# "a4b923 de631f cc31a4 ab53e17"
+
 class Organism():
     def __init__(self, genome="") -> None:
-        
+        self.id = uuid.uuid4()
         self.genome = genome
 
-        self.body = Body(genome, uuid.uuid4())
+        self.body = Body(genome, self.id)
+        # self.mind = Mind(genome, self.id)
+
+    def fitness(self):
+        pass
+
+    def select_partner(self):
+        pass
+
+    def some_kind_of_controller(self):
+        pass
 
 
-
-# gene length definitely need to be longer to encode
-# joint type and position encoding
 @dataclass        
 class Body():
     genome: str
@@ -25,17 +34,7 @@ class Body():
     
     def __post_init__(self):
         self.head = Head(str(uuid.uuid4()))
-
-        # at the end of the limb generation we terminate the tree branches
-        # with None -> indicating there are no more parts to add
-        self.structure = {
-            self.head.id: {
-                "obj": self.head,
-                "parent": None,
-                "children": []
-            }
-        }
- 
+        self.structure = {}
         self.body_parts = []
         self.genes = self.genome.split(" ")
 
@@ -48,108 +47,107 @@ class Body():
             limb = Limb(gene, str(uuid.uuid4()))
             self.body_parts.append(limb)
 
-    def add_part_to_structure(self, part, joint, endpoints, parent_id) -> None:
-        self.structure.update({
-            part.id: {
-                "obj": part,
-                "joint": joint,
-                "endpoints": endpoints,
-                "parent": parent_id,
-                "children": []
-            }
-        })
+    def design_body(self) -> None:
+        self.add_torso()
+        for part in self.body_parts[1:]:
+            parent_id = self.select_parent(part)
+            self.add_limb(parent_id, part)
+
+        #     if isinstance(self.structure[parent_id]["obj"], Head):
+        #         self.add_torso()
+        #     else:
+        #         self.add_limb(parent_id, part)
 
     def add_torso(self) -> None:
         part = self.body_parts[0]
         part.matter.position = self.head.matter.position
         
-        # list of tuples
-        endpoints = [
-            (part.matter.position[0] + part.end_1[0],
-            part.matter.position[1] + part.end_1[1]),
-            (part.matter.position[0] + part.end_2[0],
-            part.matter.position[1] + part.end_2[1])
-        ]
+        p1 = Vec2d(part.matter.position[0] + part.end_1[0],
+                   part.matter.position[1] + part.end_1[1])
 
-        joint = pymunk.constraints.PivotJoint(
-            part.matter, 
-            self.head.matter, 
-            self.head.matter.position
-        )
+        p2 = Vec2d(part.matter.position[0] + part.end_2[0],
+                   part.matter.position[1] + part.end_2[1])
 
-        joint.collide_bodies = False
-
-        self.add_part_to_structure(part, joint, endpoints, self.head.id)
-
-        self.structure[self.head.id]["children"].append(part.id)
-    
-    def add_limb(self, parent_id, part):
-        # parent_id = random.choice(list(self.structure))
-        parent = self.structure[parent_id]["obj"]       
-
-        # very bad way of checking if the parent object is the torso
-        # hesitant to add a new field to struct but might have to 
-        grandparent_id = self.structure[parent_id]["parent"]
-        if isinstance(self.structure[grandparent_id]["obj"], Head): 
-            endpoint_idx = random.randint(0,1)
+        # we always want the endpoint at index 0 to be on lhs of y axis 
+        if p1.x < 0:
+            endpoints = [p1,p2]
         else:
-            endpoint_idx = 1
+            endpoints = [p2,p1]
 
-        position = self.structure[parent_id]["endpoints"][endpoint_idx]
+        joints = [pymunk.constraints.PinJoint(part.matter, self.head.matter),
+                  pymunk.constraints.RotaryLimitJoint(part.matter, self.head.matter, 0,0)]
 
-        # print(position)
-        part.matter.position = (position[0] + part.v_x/2,
-                                position[1] + part.v_y/2)
+        self.add_part_to_structure(part, joints, endpoints, None, self.head.id)
 
-        endpoints = [
-            (part.matter.position[0] - part.v_x/2,
-                part.matter.position[1] - part.v_y/2),
-            (part.matter.position[0] + part.v_x/2,
-                part.matter.position[1] + part.v_y/2)
-        ]
+    def add_limb(self, parent_id, part):
+        parent = self.structure[parent_id]
 
-        joint = pymunk.constraints.PivotJoint(
-            part.matter, 
-            parent.matter, 
-            position
+        if parent["parent"] == self.head.id:
+            position = parent["endpoints"][part.side]
+        else:
+            position = parent["endpoints"][1]
+
+        part.matter.position = Vec2d(position.x + part.v.x/2,
+                                     position.y + part.v.y/2)
+
+        p1 = position
+        p2 = Vec2d(position.x + part.v.x, position.y + part.v.y)
+
+        endpoints = [p1, p2]
+
+        print(endpoints)
+
+        joints = self.create_joints(parent, part, p1)
+
+        self.add_part_to_structure(part, joints, endpoints, part.side, parent_id)
+        
+        parent["children"].append(part.id)
+
+    def create_joints(self, parent, part, p) -> pymunk.Constraint:
+        joints = []
+        joints.append(
+                pymunk.constraints.PivotJoint(part.matter, parent["obj"].matter, p)
         )
 
-        joint.collide_bodies = False
+        if part.rotary_lim:
+            joints.append(pymunk.constraints.DampedRotarySpring(
+                part.matter, parent["obj"].matter, math.pi/4, 10000, 100)
+            )
 
-        self.add_part_to_structure(part, joint, endpoints, parent_id)
+        if part.motor:
+            motor = pymunk.constraints.SimpleMotor(part.matter, parent["obj"].matter, 30000000000000000)
+            motor.max_force = 500000
+            joints.append(
+               motor
+            )
 
-        self.structure[parent_id]["children"].append(part.id)
+        return joints
 
+    def add_part_to_structure(self, part, joints, endpoints, side, parent_id) -> None:
+        self.structure.update({
+            part.id: {
+                "obj": part,
+                "joints": joints,
+                "endpoints": endpoints,
+                "side": side,
+                "parent": parent_id,
+                "children": []
+            }
+        })
 
-    def choose_parent(self) -> None:
+    def select_parent(self, part) -> str:
         parent_id = random.choice(list(self.structure))
 
-        if len(self.structure[parent_id]["children"]) >= 2:
-            parent_id = self.choose_parent()
+        # we want to make sure that the parts we are connection are
+        # of the same side. since the torso is in the middle we ignore it
+        if self.structure[parent_id]["side"] != None:
+            if part.side != self.structure[parent_id]["side"]:
+                parent_id = self.select_parent(part)  
+
+        # torso can have up to 4 children
+        if self.structure[parent_id]["side"] == None and len(self.structure[parent_id]["children"]) < 3:
+            pass 
+        elif len(self.structure[parent_id]["children"]) >= 2:
+            parent_id = self.select_parent(part)
         
-        return parent_id    
-
-    """
-    how can we implicitly encode limb position into the genome
-    the position of the limb is important. A limb that is usefull
-    near the head will not be useful at the extremities.
-
-    last bit indicates hand or no hand.
-    if hand we terminate the branch with None 
-    """
-    def design_body(self) -> None:
-        self.add_torso()
-        for part in self.body_parts[1:]:
-            parent_id = self.choose_parent()
-
-            if isinstance(self.structure[parent_id]["obj"], Head):
-                self.add_torso()
-            else:
-                self.add_limb(parent_id, part)
-
-        
-
-    def construct_body(self):
-        pass
-
-
+        return parent_id   
