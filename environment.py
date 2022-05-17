@@ -13,7 +13,7 @@ class Environment():
         self.space.gravity = (0,0)
 
         self.clock = pygame.time.Clock()
-        self.fps = 60
+        self.fps = 30
         self.dt = 1/self.fps
 
         self.particle_density = 16
@@ -22,8 +22,6 @@ class Environment():
 
         self.create_outer_boundaries()
         self.create_substrate()
-
-
 
     def draw(self):
         self.window.fill("white")
@@ -49,11 +47,10 @@ class Environment():
     def create_substrate(self):
         for j in range(self.n_particles_y):
             for i in range(self.n_particles_x):
-                print(i)
-                if ((i > int(216/self.particle_density) and 
-                    j > int(216/self.particle_density) and 
-                    i < int(296/self.particle_density) and 
-                    j < int(296/self.particle_density)) or
+                if ((i > int(192/self.particle_density) and 
+                    j > int(192/self.particle_density) and 
+                    i < int(304/self.particle_density) and 
+                    j < int(304/self.particle_density)) or
                     i == 0 or j == 0 or 
                     i == self.WIDTH/self.particle_density or 
                     j == self.WIDTH/self.particle_density):
@@ -61,9 +58,8 @@ class Environment():
                 else:
                     particle = pymunk.Body()
                     particle.position = (i*self.particle_density, j*self.particle_density)
-                    shape = pymunk.Circle(particle, 4.2)
-                    shape.density = 0.05
-                    shape.elasticity = 1
-                    shape.velocity = (0.1,0.1)
+                    shape = pymunk.Circle(particle, 8.1)
+                    shape.density = 0.5
+                    shape.elasticity = 0.99
                     shape.color = (200, 200,255, 100)
                     self.space.add(particle, shape)

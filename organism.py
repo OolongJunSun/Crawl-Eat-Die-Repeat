@@ -1,5 +1,6 @@
 
 import math
+from turtle import distance
 import uuid
 import random
 import pymunk
@@ -15,10 +16,18 @@ class Organism():
         self.genome = genome
 
         self.body = Body(genome, self.id)
+        self.prev_position = Vec2d(256,256)
+        self.fitness = 0
         # self.mind = Mind(genome, self.id)
 
-    def fitness(self):
-        pass
+    def calculate_fitness(self):
+        print(self.fitness)
+
+        distance = abs(self.prev_position-self.body.head.matter.position)
+        self.fitness += distance
+        
+        self.prev_position = self.body.head.matter.position
+
 
     def select_partner(self):
         pass
@@ -110,13 +119,19 @@ class Body():
         )
 
         if part.rotary_lim:
+            print("YES")
             joints.append(pymunk.constraints.DampedRotarySpring(
-                part.matter, parent["obj"].matter, math.pi/4, 10000, 100)
+                part.matter, parent["obj"].matter, 0, 100000, 100)
             )
 
-        if part.motor:
-            motor = pymunk.constraints.SimpleMotor(part.matter, parent["obj"].matter, 30000000000000000)
-            motor.max_force = 500000
+        print(part.motor)
+        if part.motor == 2:
+            print("MOTOR")
+            # motor = pymunk.constraints.SimpleMotor(part.matter, parent["obj"].matter, 30000000000000000)
+            # motor.max_force = 500000
+            motor = pymunk.constraints.SimpleMotor(part.matter, parent["obj"].matter, 100)
+            # motor.max_force = 1 250 000
+            motor.max_force = 1250000
             joints.append(
                motor
             )
@@ -145,7 +160,7 @@ class Body():
                 parent_id = self.select_parent(part)  
 
         # torso can have up to 4 children
-        if self.structure[parent_id]["side"] == None and len(self.structure[parent_id]["children"]) < 3:
+        if self.structure[parent_id]["side"] == None and len(self.structure[parent_id]["children"]) < 6:
             pass 
         elif len(self.structure[parent_id]["children"]) >= 2:
             parent_id = self.select_parent(part)

@@ -23,7 +23,7 @@ class Head(Organ):
 
     def __post_init__(self) -> None:
         self.HEAD_POSITION = (256, 256)
-        self.DENSITY = 3
+        self.DENSITY = 5
         self.HEAD_RADIUS = 12
 
         self.create()
@@ -43,8 +43,8 @@ class Limb(Organ):
     id: str 
 
     def __post_init__(self):
-        self.MAX_LENGTH = 24
-        self.MIN_LENGTH = 8
+        self.MAX_LENGTH = 48
+        self.MIN_LENGTH = 1
         self.MAX_RADIUS = 4
         self.MIN_RADIUS = 1
         self.DENSITY = 1
@@ -61,11 +61,11 @@ class Limb(Organ):
         flip_x = int(self.gene_bin[10])
         flip_y = int(self.gene_bin[11])
         self.rotary_lim = int(self.gene_bin[12])
-        self.motor = int(self.gene_bin[13])
-        self.pin = int(self.gene_bin[14])
+        self.motor = int(self.gene_bin[13:15], 2)
+        # self.pin = int(self.gene_bin[14])
         self.side = int(self.gene_bin[15]) # left = 0, right = 1
 
-        self.pin_selector = int(self.gene_bin[2:6])
+        # self.pin_selector = int(self.gene_bin[2:6])
         
 
         v_x = self.scale(
@@ -110,6 +110,7 @@ class Limb(Organ):
         )
 
         self.shape.density = self.DENSITY
+        self.shape.elasticity = 0
         self.shape.color = (0,0,0,100)
 
 
