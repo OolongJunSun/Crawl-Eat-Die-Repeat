@@ -10,16 +10,20 @@ from dataclasses import dataclass
 from appendages import Head, Limb
 
 
+@dataclass(unsafe_hash=True)
 class Organism():
-    def __init__(self, genome="") -> None:
-        self.id = uuid.uuid4()
-        self.genome = genome
+    genes: str
+    id: str
 
-        self.body = Body(genome, self.id)
+    def __post_init__(self) -> None:
+        self.body = Body(self.genes, self.id)
         self.prev_position = Vec2d(256,256)
         self.fitness = 0
         # self.mind = Mind(genome, self.id)
 
+    def __str__(self) -> str:
+        return f'Organism(id={self.id})'
+        
     def calculate_fitness(self):
         print(self.fitness)
 
@@ -104,8 +108,6 @@ class Body():
 
         endpoints = [p1, p2]
 
-        print(endpoints)
-
         joints = self.create_joints(parent, part, p1)
 
         self.add_part_to_structure(part, joints, endpoints, part.side, parent_id)
@@ -119,21 +121,18 @@ class Body():
         )
 
         if part.rotary_lim:
-            print("YES")
             joints.append(pymunk.constraints.DampedRotarySpring(
-                part.matter, parent["obj"].matter, 0, 100000, 100)
+                part.matter, parent["obj"].matter, 0, 700000, 0.5)
             )
 
-        print(part.motor)
-        if part.motor == 2:
-            print("MOTOR")
+        if part.motor == 2:    
             # motor = pymunk.constraints.SimpleMotor(part.matter, parent["obj"].matter, 30000000000000000)
             # motor.max_force = 500000
-            motor = pymunk.constraints.SimpleMotor(part.matter, parent["obj"].matter, 100)
+            motor = pymunk.constraints.SimpleMotor(part.matter, parent["obj"].matter, 1000)
             # motor.max_force = 1 250 000
-            motor.max_force = 1250000
+            motor.max_force = 700000
             joints.append(
-               motor
+                motor
             )
 
         return joints
@@ -159,10 +158,10 @@ class Body():
             if part.side != self.structure[parent_id]["side"]:
                 parent_id = self.select_parent(part)  
 
-        # torso can have up to 4 children
-        if self.structure[parent_id]["side"] == None and len(self.structure[parent_id]["children"]) < 6:
-            pass 
-        elif len(self.structure[parent_id]["children"]) >= 2:
-            parent_id = self.select_parent(part)
+        # # torso can have up to 4 children
+        # if self.structure[parent_id]["side"] == None and len(self.structure[parent_id]["children"]) < 6:
+        #     pass 
+        # elif len(self.structure[parent_id]["children"]) >= 2:
+        #     parent_id = self.select_parent(part)
         
         return parent_id   

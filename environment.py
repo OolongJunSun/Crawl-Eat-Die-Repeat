@@ -1,3 +1,5 @@
+import random
+from turtle import Vec2D
 import pygame
 import pymunk
 import pymunk.pygame_util
@@ -13,10 +15,10 @@ class Environment():
         self.space.gravity = (0,0)
 
         self.clock = pygame.time.Clock()
-        self.fps = 30
+        self.fps = 60
         self.dt = 1/self.fps
 
-        self.particle_density = 16
+        self.particle_density = 15
         self.n_particles_x = int(self.WIDTH/self.particle_density) 
         self.n_particles_y = int(self.HEIGHT/self.particle_density)
 
@@ -47,19 +49,14 @@ class Environment():
     def create_substrate(self):
         for j in range(self.n_particles_y):
             for i in range(self.n_particles_x):
-                if ((i > int(192/self.particle_density) and 
-                    j > int(192/self.particle_density) and 
-                    i < int(304/self.particle_density) and 
-                    j < int(304/self.particle_density)) or
-                    i == 0 or j == 0 or 
-                    i == self.WIDTH/self.particle_density or 
-                    j == self.WIDTH/self.particle_density):
-                    continue
-                else:
-                    particle = pymunk.Body()
-                    particle.position = (i*self.particle_density, j*self.particle_density)
-                    shape = pymunk.Circle(particle, 8.1)
-                    shape.density = 0.5
-                    shape.elasticity = 0.99
-                    shape.color = (200, 200,255, 100)
-                    self.space.add(particle, shape)
+                particle = pymunk.Body()
+                particle.position = (i*self.particle_density, j*self.particle_density)
+                
+                shape = pymunk.Circle(particle, 6)
+                shape.density = 1
+                shape.elasticity = 1
+                shape.friction = 0.02
+                shape.color = (55, 210,255, 100)
+                self.space.add(particle, shape)
+
+                pymunk.Body.update_velocity(particle, Vec2D(random.uniform(-600, 600), random.uniform(-600, 600)), 10, self.dt)

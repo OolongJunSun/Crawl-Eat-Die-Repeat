@@ -23,7 +23,7 @@ class Head(Organ):
 
     def __post_init__(self) -> None:
         self.HEAD_POSITION = (256, 256)
-        self.DENSITY = 5
+        self.DENSITY = 3
         self.HEAD_RADIUS = 12
 
         self.create()
@@ -43,11 +43,12 @@ class Limb(Organ):
     id: str 
 
     def __post_init__(self):
-        self.MAX_LENGTH = 48
-        self.MIN_LENGTH = 1
-        self.MAX_RADIUS = 4
-        self.MIN_RADIUS = 1
-        self.DENSITY = 1
+        self.MAX_LENGTH = 24
+        self.MIN_LENGTH = 4
+        self.MAX_RADIUS = 5
+        self.MIN_RADIUS = 2
+        self.DENSITY = 1.2
+        self.FRICTION = 0.5
         
         self.hex_to_bin()
         self.decode_gene()
@@ -110,6 +111,7 @@ class Limb(Organ):
         )
 
         self.shape.density = self.DENSITY
+        self.shape.friction = self.FRICTION
         self.shape.elasticity = 0
         self.shape.color = (0,0,0,100)
 
