@@ -49,10 +49,9 @@ class Limb(Organ):
         self.MIN_RADIUS = 2
         self.DENSITY = 1.2
         self.FRICTION = 0.5
-        
+
         self.hex_to_bin()
         self.decode_gene()
-
         self.create()
 
     def decode_gene(self) -> None:

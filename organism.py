@@ -17,6 +17,7 @@ class Organism():
 
     def __post_init__(self) -> None:
         self.body = Body(self.genes, self.id)
+        self.origin = Vec2d(256,256)
         self.prev_position = Vec2d(256,256)
         self.fitness = 0
         # self.mind = Mind(genome, self.id)
@@ -25,8 +26,10 @@ class Organism():
         return f'Organism(id={self.id})'
         
     def calculate_fitness(self):
-        distance = abs(self.prev_position-self.body.head.matter.position)
-        self.fitness += distance
+        abs_distance = abs(self.prev_position-self.body.head.matter.position)
+        distance_from_origin = abs(self.body.head.matter.position-self.origin)
+
+        self.fitness += abs_distance * distance_from_origin
         
         self.prev_position = self.body.head.matter.position
 

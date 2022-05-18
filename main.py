@@ -15,14 +15,17 @@ if __name__ == "__main__":
     output_folder_root = f"runs/{current_time}"
     os.mkdir(output_folder_root)
     
-    n_generations = 10
-    sim_time = 2 
+    n_generations = 100
+    sim_time = 10
+    survivors = ""
     for g in range(n_generations):
-        population = Cohort(n_indiviuals=6)
+
+        population = Cohort(2**7, survivors)
     
         generation_folder = f"/gen-{g}"
         output_folder = output_folder_root + generation_folder
         os.mkdir(output_folder)
+        gen_avg_fitness = 0
         for organism, metrics in population.cohort.items():
             env = Environment()
 
@@ -56,6 +59,10 @@ if __name__ == "__main__":
             f.close()
 
             metrics["fitness"] = organism.fitness
+            gen_avg_fitness += organism.fitness
+        with open(f"{output_folder}/avg_fitness={str(gen_avg_fitness/128)}.txt", "w") as f:
+            pass
+        f.close()
 
         population.selection()
-        population.reproduction()
+        survivors = population.reproduction()

@@ -47,8 +47,8 @@ class Environment():
             shape.filter = pymunk.ShapeFilter(group=1)
 
     def create_substrate(self):
-        for j in range(self.n_particles_y):
-            for i in range(self.n_particles_x):
+        for j in range(1,self.n_particles_y):
+            for i in range(1,self.n_particles_x):
                 particle = pymunk.Body()
                 particle.position = (i*self.particle_density, j*self.particle_density)
                 
