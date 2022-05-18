@@ -1,44 +1,61 @@
+import os
 import random
 import pygame
 import pymunk
-
+from datetime import datetime
 from environment import Environment
 from generation import Cohort
 
 if __name__ == "__main__":
     pygame.init()
 
-    population = Cohort(n_indiviuals=240)
+    date_time = datetime.now()
+    current_time = "_".join(str(date_time).split(' ')[1].split(".")[0].split(":")[:-1])
+    
+    output_folder_root = f"runs/{current_time}"
+    os.mkdir(output_folder_root)
+    
+    n_generations = 10
+    sim_time = 2 
+    for g in range(n_generations):
+        population = Cohort(n_indiviuals=6)
+    
+        generation_folder = f"/gen-{g}"
+        output_folder = output_folder_root + generation_folder
+        os.mkdir(output_folder)
+        for organism, metrics in population.cohort.items():
+            env = Environment()
 
-    print(population.cohort)
+            env.space.add(organism.body.head.matter, organism.body.head.shape)
+            organism.body.head.shape.filter = pymunk.ShapeFilter(group=2)
+            
+            for part in organism.body.structure.values():
+                env.space.add(part["obj"].matter, part["obj"].shape)
+                part["obj"].shape.filter = pymunk.ShapeFilter(group=2)
 
-    for organism, metrics in population.cohort.items():
-        env = Environment()
+                for joint in part["joints"]:
+                    env.space.add(joint)
 
-        env.space.add(organism.body.head.matter, organism.body.head.shape)
-        organism.body.head.shape.filter = pymunk.ShapeFilter(group=2)
-        
-        for part in organism.body.structure.values():
-            env.space.add(part["obj"].matter, part["obj"].shape)
-            part["obj"].shape.filter = pymunk.ShapeFilter(group=2)
+            i=0
+            n_steps = env.fps * sim_time
+            while i < n_steps:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        ERROR_KEK
 
-            for joint in part["joints"]:
-                env.space.add(joint)
+                organism.calculate_fitness()
+                env.draw()
+                env.space.step(env.dt)
+                env.clock.tick(env.fps)
+                i+=1
 
-        i=0
-        n_steps = env.fps * 15
-        while i < n_steps:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    ERROR_KEK
+            
+            with open(f"{output_folder}/{str(int(organism.fitness))}_{organism.id}.txt", "w") as f:
+                f.write(f"{organism.genes}\n")
+                f.write(str(organism.fitness))
+            f.close()
 
-            organism.calculate_fitness()
-            env.draw()
-            env.space.step(env.dt)
-            env.clock.tick(env.fps)
-            i+=1
+            metrics["fitness"] = organism.fitness
 
-        with open(f"organisms/{str(int(organism.fitness))}_{organism.id}.txt", "w") as f:
-            f.write(f"{organism.genes}\n")
-            f.write(str(organism.fitness))
-        f.close()
+        population.selection()
+        population.reproduction()

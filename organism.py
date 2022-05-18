@@ -25,8 +25,6 @@ class Organism():
         return f'Organism(id={self.id})'
         
     def calculate_fitness(self):
-        print(self.fitness)
-
         distance = abs(self.prev_position-self.body.head.matter.position)
         self.fitness += distance
         
@@ -65,11 +63,6 @@ class Body():
         for part in self.body_parts[1:]:
             parent_id = self.select_parent(part)
             self.add_limb(parent_id, part)
-
-        #     if isinstance(self.structure[parent_id]["obj"], Head):
-        #         self.add_torso()
-        #     else:
-        #         self.add_limb(parent_id, part)
 
     def add_torso(self) -> None:
         part = self.body_parts[0]
@@ -122,12 +115,12 @@ class Body():
 
         if part.rotary_lim:
             joints.append(pymunk.constraints.DampedRotarySpring(
-                part.matter, parent["obj"].matter, 0, 700000, 0.5)
+                part.matter, parent["obj"].matter, 0, 70000, 1)
             )
 
         if part.motor == 2:    
-            # motor = pymunk.constraints.SimpleMotor(part.matter, parent["obj"].matter, 30000000000000000)
-            # motor.max_force = 500000
+                # motor = pymunk.constraints.SimpleMotor(part.matter, parent["obj"].matter, 30000000000000000)
+                # motor.max_force = 500000
             motor = pymunk.constraints.SimpleMotor(part.matter, parent["obj"].matter, 1000)
             # motor.max_force = 1 250 000
             motor.max_force = 700000

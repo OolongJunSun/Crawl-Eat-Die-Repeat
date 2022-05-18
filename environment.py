@@ -1,8 +1,8 @@
 import random
-from turtle import Vec2D
 import pygame
 import pymunk
 import pymunk.pygame_util
+from pymunk.vec2d import Vec2d
 
 class Environment():
     def __init__(self) -> None:
@@ -59,4 +59,4 @@ class Environment():
                 shape.color = (55, 210,255, 100)
                 self.space.add(particle, shape)
 
-                pymunk.Body.update_velocity(particle, Vec2D(random.uniform(-600, 600), random.uniform(-600, 600)), 10, self.dt)
+                pymunk.Body.update_velocity(particle, Vec2d(random.uniform(-1000, 1000), random.uniform(-2000, 2000)), 10, self.dt)
