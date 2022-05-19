@@ -16,11 +16,12 @@ if __name__ == "__main__":
     os.mkdir(output_folder_root)
     
     n_generations = 100
+    n_individuals = 2**8
     sim_time = 10
     survivors = ""
     for g in range(n_generations):
 
-        population = Cohort(2**7, survivors)
+        population = Cohort(n_individuals, survivors)
     
         generation_folder = f"/gen-{g}"
         output_folder = output_folder_root + generation_folder
@@ -40,6 +41,9 @@ if __name__ == "__main__":
                     env.space.add(joint)
 
             i=0
+            # change it to an energy based simulation duration
+            # motors use energy
+            # there is food to eat in the environment
             n_steps = env.fps * sim_time
             while i < n_steps:
                 for event in pygame.event.get():
@@ -56,13 +60,13 @@ if __name__ == "__main__":
             with open(f"{output_folder}/{str(int(organism.fitness))}_{organism.id}.txt", "w") as f:
                 f.write(f"{organism.genes}\n")
                 f.write(str(organism.fitness))
-            f.close()
+
 
             metrics["fitness"] = organism.fitness
             gen_avg_fitness += organism.fitness
-        with open(f"{output_folder}/avg_fitness={str(gen_avg_fitness/128)}.txt", "w") as f:
+        with open(f"{output_folder}/avg_fitness={str(gen_avg_fitness/n_individuals)}.txt", "w") as f:
             pass
-        f.close()
+
 
         population.selection()
         survivors = population.reproduction()

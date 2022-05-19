@@ -1,6 +1,5 @@
 
 import math
-from turtle import distance
 import uuid
 import random
 import pymunk
@@ -18,7 +17,7 @@ class Organism():
     def __post_init__(self) -> None:
         self.body = Body(self.genes, self.id)
         self.origin = Vec2d(256,256)
-        self.prev_position = Vec2d(256,256)
+        self.prev_position = self.origin
         self.fitness = 0
         # self.mind = Mind(genome, self.id)
 
@@ -26,7 +25,7 @@ class Organism():
         return f'Organism(id={self.id})'
         
     def calculate_fitness(self):
-        abs_distance = abs(self.prev_position-self.body.head.matter.position)
+        abs_distance = math.sqrt(abs(self.prev_position-self.body.head.matter.position))
         distance_from_origin = abs(self.body.head.matter.position-self.origin)
 
         self.fitness += abs_distance * distance_from_origin
@@ -122,10 +121,11 @@ class Body():
             )
 
         if part.motor == 2:    
-                # motor = pymunk.constraints.SimpleMotor(part.matter, parent["obj"].matter, 30000000000000000)
-                # motor.max_force = 500000
-            motor = pymunk.constraints.SimpleMotor(part.matter, parent["obj"].matter, 1000)
-            # motor.max_force = 1 250 000
+            if part.motor_direction == 0:
+                motor = pymunk.constraints.SimpleMotor(part.matter, parent["obj"].matter, -1000)
+            else:
+                motor = pymunk.constraints.SimpleMotor(part.matter, parent["obj"].matter, 1000)
+
             motor.max_force = 700000
             joints.append(
                 motor
@@ -134,6 +134,7 @@ class Body():
         return joints
 
     def add_part_to_structure(self, part, joints, endpoints, side, parent_id) -> None:
+        #add depth
         self.structure.update({
             part.id: {
                 "obj": part,
@@ -142,6 +143,7 @@ class Body():
                 "side": side,
                 "parent": parent_id,
                 "children": []
+                #"depth" : X
             }
         })
 

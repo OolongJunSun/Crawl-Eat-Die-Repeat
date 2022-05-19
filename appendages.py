@@ -60,10 +60,15 @@ class Limb(Organ):
         radius = self.gene_bin[8:10]
         flip_x = int(self.gene_bin[10])
         flip_y = int(self.gene_bin[11])
+        self.motor_direction = int(self.gene_bin[11])
         self.rotary_lim = int(self.gene_bin[12])
         self.motor = int(self.gene_bin[13:15], 2)
         # self.pin = int(self.gene_bin[14])
         self.side = int(self.gene_bin[15]) # left = 0, right = 1
+
+
+        # add motor and rotary lim  parameter encodings
+        # add prefence of limb towards grows outwards or more branches
 
         # self.pin_selector = int(self.gene_bin[2:6])
         

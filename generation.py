@@ -4,13 +4,15 @@ from organism import Organism
 
 class Cohort():
     def __init__(self, n_indiviuals, surviving_genes) -> None:
-        self.cohort = {}
-        self.cohort_size = n_indiviuals
-        self.survival_rate = 0.5
-
         self.gene_size = 4
         self.n_genes = 13
         self.genome_length = int(self.n_genes*self.gene_size)
+
+        self.cohort = {}
+        self.cohort_size = n_indiviuals
+        self.survival_rate = 0.20
+        self.mutation_rate = 0.01 / (self.gene_size * self.n_genes)
+        self.n_elite = 6
 
         gene_pool = self.initialize_genepool(self.cohort_size, surviving_genes)
 
@@ -47,35 +49,45 @@ class Cohort():
     def selection(self) -> None:
         sorted_cohort = sorted(self.cohort.items(),key=lambda k_v: k_v[1]['fitness'])
         
-        self.surviving_individuals = []
+        self.reproducing_individuals = []
         for idx, individual in enumerate(sorted_cohort[::-1]):
             if idx >= int(self.cohort_size*self.survival_rate):
                 break
 
-            self.surviving_individuals.append(individual)    
+            self.reproducing_individuals.append(individual)  
 
-        random.shuffle(self.surviving_individuals)
+        self.elite_individuals = self.reproducing_individuals[0:self.n_elite]
 
+        
+
+    # have some of the fit individuals reproduce with the 3rd quartile
+    # of organisms -> new evolutionary mechanism known as the pity fuck
     def reproduction(self) -> None:
         breeding_pair = []
         children = []
-        for idx, individual in enumerate(self.surviving_individuals):
-            metrics = individual[1]
-            genome = metrics["genome"]
 
-            breeding_pair.append(genome)
-            if (idx+1) % 2 == 0:
-                k = random.randint(1,2)
-                child_1, child_2 = self.k_point_crossover(k, breeding_pair, 2)
-                children.append(child_1)
-                children.append(child_2)
-                breeding_pair = []
+        for _ in range(int(1/self.survival_rate)):
+            random.shuffle(self.reproducing_individuals)
+            for idx, individual in enumerate(self.reproducing_individuals):
+                metrics = individual[1]
+                genome = metrics["genome"]
 
+                breeding_pair.append(genome)
+                if (idx+1) % 2 == 0:
+                    k = random.randint(1,2)
+                    child_1, child_2 = self.k_point_crossover(k, breeding_pair, 2)
+                    children.append(child_1)
+                    children.append(child_2)
+                    breeding_pair = []
+
+        # elistism
+        surviving_gene_pool = surviving_gene_pool + self.elite_individuals
         
         surviving_gene_pool = "".join(children)
 
-        return surviving_gene_pool
+        surviving_gene_pool = self.mutate(surviving_gene_pool)
 
+        return surviving_gene_pool
 
 
     def k_point_crossover(self, k, breeding_pair, n_offspring):
@@ -94,16 +106,24 @@ class Cohort():
 
         offspring_1 = []
         offspring_2 = []
-        for idx in range(len(parts_1)):
+        for idx, p1, p2 in enumerate(zip(parts_1, parts_2)):
             if idx % 2 == 0:
-                offspring_1.append(parts_2[idx])
-                offspring_2.append(parts_1[idx])
-            else:    
-                offspring_1.append(parts_1[idx])
-                offspring_2.append(parts_2[idx])
+                offspring_1.append(p2)
+                offspring_2.append(p1)
+            else:
+                offspring_1.append(p1)
+                offspring_2.append(p2)
         
         offspring_1 = "".join(offspring_1)
         offspring_2 = "".join(offspring_2)
-        print(offspring_1)
-        print(offspring_2)
+
         return offspring_1, offspring_2
+
+    def mutation(self, gene_pool):
+        i = random.uniform(0, 1)
+        return [
+            base_pair if i > self.mutation_rate else hex(int(base_pair, 16) + 1) \
+            for base_pair in gene_pool
+        ]
+
+
