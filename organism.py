@@ -33,12 +33,6 @@ class Organism():
         self.prev_position = self.body.head.matter.position
 
 
-    def select_partner(self):
-        pass
-
-    def some_kind_of_controller(self):
-        pass
-
 
 @dataclass        
 class Body():
@@ -109,27 +103,42 @@ class Body():
         
         parent["children"].append(part.id)
 
-    def create_joints(self, parent, part, p) -> pymunk.Constraint:
+    def create_joints(self, parent, part, pos) -> pymunk.Constraint:
         joints = []
         joints.append(
-                pymunk.constraints.PivotJoint(part.matter, parent["obj"].matter, p)
+            pymunk.constraints.PivotJoint(
+                part.matter,
+                parent["obj"].matter, 
+                pos
+            )
         )
 
-        if part.rotary_lim:
-            joints.append(pymunk.constraints.DampedRotarySpring(
-                part.matter, parent["obj"].matter, 0, 70000, 1)
-            )
-
-        if part.motor == 2:    
-            if part.motor_direction == 0:
-                motor = pymunk.constraints.SimpleMotor(part.matter, parent["obj"].matter, -1000)
-            else:
-                motor = pymunk.constraints.SimpleMotor(part.matter, parent["obj"].matter, 1000)
-
-            motor.max_force = 700000
+        if part.rotary_lim >= 2:
             joints.append(
-                motor
+                pymunk.constraints.DampedRotarySpring(
+                    part.matter, 
+                    parent["obj"].matter, 
+                    0, 
+                    self.spring_stiffness, 
+                    self.spring_damping
+                )
             )
+
+        if part.motor == 1 or part.motor == 3:    
+            if part.motor_direction == 0:
+                motor = pymunk.constraints.SimpleMotor(
+                    part.matter, 
+                    parent["obj"].matter, 
+                    -1000
+                )
+            else:
+                motor = pymunk.constraints.SimpleMotor(
+                    part.matter, 
+                    parent["obj"].matter, 
+                    1000
+                )
+            motor.max_force = part.motor_force
+            joints.append(motor)
 
         return joints
 

@@ -50,6 +50,14 @@ class Limb(Organ):
         self.DENSITY = 1.2
         self.FRICTION = 0.5
 
+        self.MAX_MOTOR_FORCE = 70000
+        self.MIN_MOTOR_FORCE = 40000
+        self.MAX_SPRING_STIFFNESS = 1.2
+        self.MIN_SPRING_STIFFNESS = 0.8
+        self.MAX_SPRING_DAMPING = 1.3
+        self.MIN_SPRING_DAMPING = 0.7
+
+
         self.hex_to_bin()
         self.decode_gene()
         self.create()
@@ -60,19 +68,8 @@ class Limb(Organ):
         radius = self.gene_bin[8:10]
         flip_x = int(self.gene_bin[10])
         flip_y = int(self.gene_bin[11])
-        self.motor_direction = int(self.gene_bin[11])
-        self.rotary_lim = int(self.gene_bin[12])
-        self.motor = int(self.gene_bin[13:15], 2)
-        # self.pin = int(self.gene_bin[14])
-        self.side = int(self.gene_bin[15]) # left = 0, right = 1
-
-
-        # add motor and rotary lim  parameter encodings
-        # add prefence of limb towards grows outwards or more branches
-
-        # self.pin_selector = int(self.gene_bin[2:6])
+        self.side = int(self.gene_bin[12]) # left = 0, right = 1
         
-
         v_x = self.scale(
             self.normalize(v_x), 
             self.MAX_LENGTH,
@@ -103,6 +100,46 @@ class Limb(Organ):
         self.end_1 = (-v_x/2, -v_y/2)
         self.end_2 = (v_x/2, v_y/2)
         
+        # 00 - no motor or rotary lim
+        # 01 - motor & no rotary lim
+        # 10 - rotary lim & no motor
+        # 11 - motor & rotary lime
+        self.joint_mechanics = int(self.gene_bin[13:15], 2)
+        
+        # 0 - motor direction
+        self.motor_direction = int(self.gene_bin[15])
+        # motor power settings - 40k to 70k
+        self.motor_force = int(self.gene_bin[16:19], 2)
+
+        # stiffness relative to motor force - 0.8x to 1.2x
+        self.spring_stiffness = int(self.gene_bin[19:22], 2)
+
+        # damping - 0.7 to 1.3
+        self.spring_damping = int(self.gene_bin[22:24], 2)
+        # could add resting angle of rotary spring
+
+        self.motor_force = self.scale(
+            self.normalize(self.motor_force),
+            self.MAX_MOTOR_FORCE,
+            self.MIN_MOTOR_FORCE
+        )
+
+        self.spring_stiffness = self.scale(
+            self.normalize(self.spring_stiffness),
+            self.MAX_SPRING_STIFFNESS,
+            self.MIN_SPRING_STIFFNESS
+        )
+
+        # spring stiffness value is relative to motor force
+        self.spring_stiffness = self.spring_stiffness * self.motor_force 
+
+        self.spring_damping = self.scale(
+            self.normalize(self.spring_damping),
+            self.MAX_SPRING_DAMPING,
+            self.MIN_SPRING_DAMPING
+        )       
+
+        
     def create(self) -> None:
         self.matter = pymunk.Body()
         # DONT INIT POSITION YET -> IT DEPENDS ON THE PARENT POS
@@ -119,13 +156,5 @@ class Limb(Organ):
         self.shape.elasticity = 0
         self.shape.color = (0,0,0,100)
 
-
-@dataclass
-class Hand():
-    gene: str
-    id: str
-    grip_strength: float = 0
-    endurance: float = 0
-    speed: float = 0
 
 

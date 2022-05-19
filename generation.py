@@ -4,7 +4,7 @@ from organism import Organism
 
 class Cohort():
     def __init__(self, n_indiviuals, surviving_genes) -> None:
-        self.gene_size = 4
+        self.gene_size = 6
         self.n_genes = 13
         self.genome_length = int(self.n_genes*self.gene_size)
 
@@ -59,9 +59,6 @@ class Cohort():
         self.elite_individuals = self.reproducing_individuals[0:self.n_elite]
 
         
-
-    # have some of the fit individuals reproduce with the 3rd quartile
-    # of organisms -> new evolutionary mechanism known as the pity fuck
     def reproduction(self) -> None:
         breeding_pair = []
         children = []
