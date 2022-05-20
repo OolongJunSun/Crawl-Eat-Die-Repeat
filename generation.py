@@ -33,8 +33,9 @@ class Cohort():
         cohort = {}
         genomes = gene_pool.split(" ") 
         for genome in genomes:
+            print(genome)
             genes = ' '.join(genome[i:i+self.gene_size] for i in range(0, len(genome), self.gene_size))
-
+            print(genes)
             individual = Organism(genes, uuid.uuid4())
             cohort.update({
                 individual: {

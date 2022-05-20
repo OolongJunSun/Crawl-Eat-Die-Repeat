@@ -100,24 +100,15 @@ class Limb(Organ):
         self.end_1 = (-v_x/2, -v_y/2)
         self.end_2 = (v_x/2, v_y/2)
         
-        # 00 - no motor or rotary lim
-        # 01 - motor & no rotary lim
-        # 10 - rotary lim & no motor
-        # 11 - motor & rotary lime
+
         self.joint_mechanics = int(self.gene_bin[13:15], 2)
         
-        # 0 - motor direction
         self.motor_direction = int(self.gene_bin[15])
-        # motor power settings - 40k to 70k
-        self.motor_force = int(self.gene_bin[16:19], 2)
+        self.motor_force = self.gene_bin[16:19]
+        self.spring_stiffness = self.gene_bin[19:22]
+        self.spring_damping = self.gene_bin[22:24]
 
-        # stiffness relative to motor force - 0.8x to 1.2x
-        self.spring_stiffness = int(self.gene_bin[19:22], 2)
-
-        # damping - 0.7 to 1.3
-        self.spring_damping = int(self.gene_bin[22:24], 2)
-        # could add resting angle of rotary spring
-
+        print(f"{self.motor_force=}")
         self.motor_force = self.scale(
             self.normalize(self.motor_force),
             self.MAX_MOTOR_FORCE,
@@ -130,7 +121,6 @@ class Limb(Organ):
             self.MIN_SPRING_STIFFNESS
         )
 
-        # spring stiffness value is relative to motor force
         self.spring_stiffness = self.spring_stiffness * self.motor_force 
 
         self.spring_damping = self.scale(

@@ -1,49 +1,50 @@
 import os
-import random
 import pygame
 import pymunk
+import argparse
 from datetime import datetime
+
 from environment import Environment
 from generation import Cohort
+
+# parser = argparse.ArgumentParser(description='.')
+# parser.add_argument('-lg', '--load_gen', type=str, help='relative path to generation folder')
+
+# args = parser.parse_args()
+# print(args.lg)
 
 if __name__ == "__main__":
     pygame.init()
 
-    date_time = datetime.now()
-    current_time = "_".join(str(date_time).split(' ')[1].split(".")[0].split(":")[:-1])
-    
-    output_folder_root = f"runs/{current_time}"
-    os.mkdir(output_folder_root)
-    
-    n_generations = 100
-    n_individuals = 2**8
-    sim_time = 10
-    survivors = ""
-    for g in range(n_generations):
-
-        population = Cohort(n_individuals, survivors)
-    
-        generation_folder = f"/gen-{g}"
-        output_folder = output_folder_root + generation_folder
+    # e.g datetime.now format -> '2022-05-20 10:20:34.168220'
+    current_time = str(datetime.now())
+    current_time = current_time.replace(" ","_").replace(":","-").split(".")[0]
+    output_folder = f"runs/{current_time}"
+    try:
         os.mkdir(output_folder)
+    except FileExistsError:
+        print("Output folder for this run already exists.")
+
+    n_generations = 100
+    n_individuals = 2**4
+    sim_time = 0.1
+    surviving_genes = ""
+    for n in range(n_generations):
+        population = Cohort(n_individuals, surviving_genes)
+
+        gen_folder = f"{output_folder}/gen-{n}"
+        try:
+            os.mkdir(gen_folder)
+        except FileExistsError:
+            print("Output folder for this generation already exists.")
+        
+
         gen_avg_fitness = 0
         for organism, metrics in population.cohort.items():
-            env = Environment()
-
-            env.space.add(organism.body.head.matter, organism.body.head.shape)
-            organism.body.head.shape.filter = pymunk.ShapeFilter(group=2)
-            
-            for part in organism.body.structure.values():
-                env.space.add(part["obj"].matter, part["obj"].shape)
-                part["obj"].shape.filter = pymunk.ShapeFilter(group=2)
-
-                for joint in part["joints"]:
-                    env.space.add(joint)
+            print(gen_avg_fitness)
+            env = Environment(organism)
 
             i=0
-            # change it to an energy based simulation duration
-            # motors use energy
-            # there is food to eat in the environment
             n_steps = env.fps * sim_time
             while i < n_steps:
                 for event in pygame.event.get():
@@ -51,7 +52,7 @@ if __name__ == "__main__":
                         ERROR_KEK
 
                 organism.calculate_fitness()
-                env.draw()
+                # env.draw()
                 env.space.step(env.dt)
                 env.clock.tick(env.fps)
                 i+=1
@@ -69,4 +70,5 @@ if __name__ == "__main__":
 
 
         population.selection()
-        survivors = population.reproduction()
+        surviving_genes = population.reproduction()
+        print(surviving_genes)

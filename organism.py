@@ -1,4 +1,3 @@
-
 import math
 import uuid
 import random
@@ -31,6 +30,9 @@ class Organism():
         self.fitness += abs_distance * distance_from_origin
         
         self.prev_position = self.body.head.matter.position
+
+    def update_energy(self):
+        pass
 
 
 
@@ -113,18 +115,18 @@ class Body():
             )
         )
 
-        if part.rotary_lim >= 2:
+        if part.joint_mechanics >= 2:
             joints.append(
                 pymunk.constraints.DampedRotarySpring(
                     part.matter, 
                     parent["obj"].matter, 
                     0, 
-                    self.spring_stiffness, 
-                    self.spring_damping
+                    part.spring_stiffness, 
+                    part.spring_damping
                 )
             )
 
-        if part.motor == 1 or part.motor == 3:    
+        if part.joint_mechanics == 1 or part.joint_mechanics == 3:    
             if part.motor_direction == 0:
                 motor = pymunk.constraints.SimpleMotor(
                     part.matter, 
