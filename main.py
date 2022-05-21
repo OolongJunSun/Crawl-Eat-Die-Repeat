@@ -1,9 +1,12 @@
 import os
+import time
 import pygame
-import pymunk
 import argparse
+from itertools import islice
 from datetime import datetime
-
+from multiprocessing import Process, Manager
+from experiment import Experiment
+from population_loader import Loader
 from environment import Environment
 from generation import Cohort
 
@@ -12,6 +15,14 @@ from generation import Cohort
 
 # args = parser.parse_args()
 # print(args.lg)
+
+def chunks(data, SIZE=64):
+    it = iter(data)
+    for i in range(0, len(data), SIZE):
+        yield {k:data[k] for k in islice(it, SIZE)}
+
+def main_loop():
+    pass
 
 if __name__ == "__main__":
     pygame.init()
@@ -26,11 +37,17 @@ if __name__ == "__main__":
         print("Output folder for this run already exists.")
 
     n_generations = 100
-    n_individuals = 2**4
+    n_individuals = 2**8
     sim_time = 10
     surviving_genes = ""
+
+    # checkpoint_path = "D:\\02_Projects\\03_Active\\Evolution\\CEDR\\runs\\12_00"
+    # loader = Loader(checkpoint_path)
+    # surviving_genes = loader.gene_pool
+
     for n in range(n_generations):
         population = Cohort(n_individuals, surviving_genes)
+
 
         gen_folder = f"{output_folder}/gen-{n}"
         try:
@@ -39,38 +56,37 @@ if __name__ == "__main__":
             print("Output folder for this generation already exists.")
         
 
-        gen_avg_fitness = 0
-        for organism, metrics in population.cohort.items():
-            print(gen_avg_fitness)
-            env = Environment(organism)
+        process_manager = manager = Manager()
+        return_dict = manager.dict()
 
-            i=0
-            n_steps = env.fps * sim_time
-            while i < n_steps:
-                for event in pygame.event.get():
-                    if event.type == pygame.QUIT:
-                        ERROR_KEK
+        runs = []
+        processes = []
+        chunk_size = 32
+        # Multiprocessing approach
+        for idx, chunk in enumerate(chunks(population.cohort, chunk_size)):
+            # print(f"Starting process {idx}...")
+            runs.append(Experiment(chunk,  sim_time, gen_folder, idx))
+            processes.append(Process(target=runs[idx].main_loop, args=(return_dict,)))
 
-                organism.calculate_fitness()
-                env.draw()
-                # env.display_fps()
-                env.space.step(env.dt)
-                env.clock.tick(env.fps)
-                i+=1
+        for process in processes:
+            process.start()
+        
+        for process in processes:
+            process.join()
 
-            
-            with open(f"{output_folder}/{str(int(organism.fitness))}_{organism.id}.txt", "w") as f:
-                f.write(f"{organism.genes}\n")
-                f.write(str(organism.fitness))
+        population = Cohort(n_individuals, surviving_genes, return_dict)
+        
+        total_fitness = 0
+        for individual in population.cohort.values():
+            total_fitness += individual["fitness"]
 
-
-            metrics["fitness"] = organism.fitness
-            gen_avg_fitness += organism.fitness
-        with open(f"{output_folder}/avg_fitness={str(gen_avg_fitness/n_individuals)}.txt", "w") as f:
+        mean_fitness = total_fitness / len(population.cohort)
+        with open(f"{gen_folder}/avg_fitness={str(mean_fitness)}.txt", "w") as f:
             pass
-
 
         population.selection()
         surviving_genes = population.reproduction()
-        mutated_genes = population.mutate(surviving_genes)
-        print(surviving_genes)
+        surviving_genes = population.mutation(surviving_genes)
+
+    print("goes hererererer")
+  

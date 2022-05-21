@@ -9,25 +9,28 @@ class Environment():
     def __init__(self, organism) -> None:
         self.WIDTH, self.HEIGHT = 512, 512
 
-        self.window = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
+        # self.window = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
         # self.game_font = pygame.freetype.Font("your_font.ttf", 24)
-        self.draw_options = pymunk.pygame_util.DrawOptions(self.window)
-        self.draw_options.collision_point_color = (255, 255,255, 100)
+        # self.draw_options = pymunk.pygame_util.DrawOptions(self.window)
+        # self.draw_options.collision_point_color = (255, 255,255, 100)
         
         self.space = pymunk.Space()
         self.space.gravity = (0,0)
         self.clock = pygame.time.Clock()
         self.fps = 60
         self.dt = 1/self.fps
+        # self.space.iterations = 1
 
-        self.particle_density = 15  # 15
+        self.particle_density = 6 # 15
         self.n_particles_x = int(self.WIDTH/self.particle_density) 
         self.n_particles_y = int(self.HEIGHT/self.particle_density)
 
-        self.create_fonts([24])
+        # self.create_fonts([24])
         self.create_outer_boundaries()
         self.create_substrate()
         self.populate_environment(organism)
+
+
         
 
     def display_fps(self):
@@ -58,6 +61,10 @@ class Environment():
         self.window.fill("white")
         self.space.debug_draw(self.draw_options)
         self.display_fps()
+        
+        rect = pygame.Rect(0, 0, self.WIDTH, self.HEIGHT)
+        sub = self.window.subsurface(rect)
+        pygame.image.save(sub, "screenshot.jpg")
         
         # self.GAME_FONT.render_to(
         #     self.window, 
@@ -91,7 +98,7 @@ class Environment():
                 particle = pymunk.Body()
                 particle.position = (i*self.particle_density, j*self.particle_density)
                 
-                shape = pymunk.Circle(particle, 3) # 6
+                shape = pymunk.Circle(particle, 2.5) # 6 # 2.5
                 shape.density = 1
                 shape.elasticity = 1
                 shape.friction = 0.02
@@ -101,7 +108,6 @@ class Environment():
                 initial_impulse = Vec2d(random.uniform(-600, 600), random.uniform(-600, 600))
                 pymunk.Body.update_velocity(particle, initial_impulse, 10, self.dt)
 
-        print(particle)
 
     def populate_environment(self, organism):
         self.space.add(organism.body.head.matter, organism.body.head.shape)

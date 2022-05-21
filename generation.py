@@ -3,7 +3,7 @@ import uuid
 from organism import Organism
 
 class Cohort():
-    def __init__(self, n_indiviuals, surviving_genes) -> None:
+    def __init__(self, n_indiviuals, surviving_genes, cohort=None) -> None:
         self.gene_size = 6
         self.n_genes = 13
         self.genome_length = int(self.n_genes*self.gene_size)
@@ -16,13 +16,17 @@ class Cohort():
 
         self.gene_pool = self.initialize_genepool(self.cohort_size, surviving_genes)
 
-        self.cohort = self.generate_cohort(self.gene_pool)
+        if not cohort:
+            self.cohort = self.generate_cohort(self.gene_pool)
+        else:
+            self.cohort = cohort
 
 
     def initialize_genepool(self, n_individuals, surviving_genes="") -> str:
         gene_length = len(surviving_genes)
 
         pool_size = int(n_individuals * self.n_genes * self.gene_size - gene_length)
+
         gene_pool = f'%0{pool_size}x' % random.randrange(int(16**pool_size))
         gene_pool = surviving_genes + gene_pool
         gene_pool =  ' '.join(gene_pool[i:i+self.genome_length] for i in range(0, len(gene_pool), self.genome_length))
@@ -31,16 +35,18 @@ class Cohort():
 
     def generate_cohort(self, gene_pool) -> dict:
         cohort = {}
+
         genomes = gene_pool.split(" ") 
         for genome in genomes:
-            print(genome)
             genes = ' '.join(genome[i:i+self.gene_size] for i in range(0, len(genome), self.gene_size))
-            print(genes)
-            individual = Organism(genes, uuid.uuid4())
+            if len(genes) < self.gene_size:
+                pass
+            else:
+                individual = Organism(genes, uuid.uuid4())
             cohort.update({
                 individual: {
                     "fitness": 0,
-                    "parents": None,
+                    # "parents": None,
                     "genome": genome
                 }
             })
@@ -57,7 +63,11 @@ class Cohort():
 
             self.reproducing_individuals.append(individual)  
 
-        self.elite_individuals = self.reproducing_individuals[0:self.n_elite]
+        elite_individuals = self.reproducing_individuals[0:self.n_elite]
+
+        self.elite_genes = ""
+        for individual in elite_individuals:
+            self.elite_genes += "".join(individual[0].genes).strip("\n").replace(" ","")
 
         
     def reproduction(self) -> None:
@@ -79,11 +89,7 @@ class Cohort():
                     breeding_pair = []
 
         # elistism
-        surviving_gene_pool = surviving_gene_pool + self.elite_individuals
-        
-        surviving_gene_pool = "".join(children)
-
-        surviving_gene_pool = self.mutate(surviving_gene_pool)
+        surviving_gene_pool = "".join(children) + self.elite_genes
 
         return surviving_gene_pool
 
@@ -104,7 +110,7 @@ class Cohort():
 
         offspring_1 = []
         offspring_2 = []
-        for idx, p1, p2 in enumerate(zip(parts_1, parts_2)):
+        for idx, (p1, p2) in enumerate(zip(parts_1, parts_2)):
             if idx % 2 == 0:
                 offspring_1.append(p2)
                 offspring_2.append(p1)
@@ -120,15 +126,16 @@ class Cohort():
     def mutation(self, gene_pool):
         i = random.uniform(0, 1)
 
-        print(gene_pool)
-        scale = 16  ## equals to hexadecimal
-        n_bits = 4
-        gene_bin = bin(int(gene_pool, scale))[2:].zfill(len(gene_pool) * n_bits)
-        print(gene_bin)
+        # scale = 16  ## equals to hexadecimal
+        # n_bits = 4
+        # gene_bin = bin(int(gene_pool, scale))[2:].zfill(len(gene_pool) * n_bits)
+
         mutated_genes = [
             base_pair if i > self.mutation_rate else hex(int(base_pair, 16) + 1) \
             for base_pair in gene_pool
         ]
+
+        mutated_genes = "".join(mutated_genes)
 
         return mutated_genes
 

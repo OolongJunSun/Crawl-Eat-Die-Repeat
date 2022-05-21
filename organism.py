@@ -115,7 +115,7 @@ class Body():
             )
         )
 
-        if part.joint_mechanics >= 2:
+        if int(part.joint_mechanics) >= 2:
             joints.append(
                 pymunk.constraints.DampedRotarySpring(
                     part.matter, 
@@ -126,7 +126,7 @@ class Body():
                 )
             )
 
-        if part.joint_mechanics == 1 or part.joint_mechanics == 3:    
+        if int(part.joint_mechanics) == 1 or int(part.joint_mechanics) == 3:    
             if part.motor_direction == 0:
                 motor = pymunk.constraints.SimpleMotor(
                     part.matter, 

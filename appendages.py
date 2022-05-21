@@ -43,7 +43,7 @@ class Limb(Organ):
     id: str 
 
     def __post_init__(self):
-        self.MAX_LENGTH = 24
+        self.MAX_LENGTH = 32
         self.MIN_LENGTH = 4
         self.MAX_RADIUS = 5
         self.MIN_RADIUS = 2
@@ -99,16 +99,14 @@ class Limb(Organ):
         # see: http://www.pymunk.org/en/latest/overview.html#center-of-gravity 
         self.end_1 = (-v_x/2, -v_y/2)
         self.end_2 = (v_x/2, v_y/2)
-        
 
-        self.joint_mechanics = int(self.gene_bin[13:15], 2)
+        self.joint_mechanics = self.gene_bin[13:15]
         
         self.motor_direction = int(self.gene_bin[15])
         self.motor_force = self.gene_bin[16:19]
         self.spring_stiffness = self.gene_bin[19:22]
         self.spring_damping = self.gene_bin[22:24]
 
-        print(f"{self.motor_force=}")
         self.motor_force = self.scale(
             self.normalize(self.motor_force),
             self.MAX_MOTOR_FORCE,
