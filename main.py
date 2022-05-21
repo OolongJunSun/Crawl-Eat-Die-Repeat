@@ -27,7 +27,7 @@ if __name__ == "__main__":
 
     n_generations = 100
     n_individuals = 2**4
-    sim_time = 0.1
+    sim_time = 10
     surviving_genes = ""
     for n in range(n_generations):
         population = Cohort(n_individuals, surviving_genes)
@@ -52,7 +52,8 @@ if __name__ == "__main__":
                         ERROR_KEK
 
                 organism.calculate_fitness()
-                # env.draw()
+                env.draw()
+                # env.display_fps()
                 env.space.step(env.dt)
                 env.clock.tick(env.fps)
                 i+=1
@@ -71,4 +72,5 @@ if __name__ == "__main__":
 
         population.selection()
         surviving_genes = population.reproduction()
+        mutated_genes = population.mutate(surviving_genes)
         print(surviving_genes)

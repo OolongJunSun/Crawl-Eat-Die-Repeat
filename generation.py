@@ -14,9 +14,9 @@ class Cohort():
         self.mutation_rate = 0.01 / (self.gene_size * self.n_genes)
         self.n_elite = 6
 
-        gene_pool = self.initialize_genepool(self.cohort_size, surviving_genes)
+        self.gene_pool = self.initialize_genepool(self.cohort_size, surviving_genes)
 
-        self.cohort = self.generate_cohort(gene_pool)
+        self.cohort = self.generate_cohort(self.gene_pool)
 
 
     def initialize_genepool(self, n_individuals, surviving_genes="") -> str:
@@ -26,7 +26,7 @@ class Cohort():
         gene_pool = f'%0{pool_size}x' % random.randrange(int(16**pool_size))
         gene_pool = surviving_genes + gene_pool
         gene_pool =  ' '.join(gene_pool[i:i+self.genome_length] for i in range(0, len(gene_pool), self.genome_length))
-
+        
         return gene_pool
 
     def generate_cohort(self, gene_pool) -> dict:
@@ -119,9 +119,17 @@ class Cohort():
 
     def mutation(self, gene_pool):
         i = random.uniform(0, 1)
-        return [
+
+        print(gene_pool)
+        scale = 16  ## equals to hexadecimal
+        n_bits = 4
+        gene_bin = bin(int(gene_pool, scale))[2:].zfill(len(gene_pool) * n_bits)
+        print(gene_bin)
+        mutated_genes = [
             base_pair if i > self.mutation_rate else hex(int(base_pair, 16) + 1) \
             for base_pair in gene_pool
         ]
+
+        return mutated_genes
 
 

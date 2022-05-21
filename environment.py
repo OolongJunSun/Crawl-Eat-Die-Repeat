@@ -10,7 +10,7 @@ class Environment():
         self.WIDTH, self.HEIGHT = 512, 512
 
         self.window = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
-        self.game_font = pygame.freetype.Font("your_font.ttf", 24)
+        # self.game_font = pygame.freetype.Font("your_font.ttf", 24)
         self.draw_options = pymunk.pygame_util.DrawOptions(self.window)
         self.draw_options.collision_point_color = (255, 255,255, 100)
         
@@ -20,24 +20,51 @@ class Environment():
         self.fps = 60
         self.dt = 1/self.fps
 
-        self.particle_density = 15
+        self.particle_density = 15  # 15
         self.n_particles_x = int(self.WIDTH/self.particle_density) 
         self.n_particles_y = int(self.HEIGHT/self.particle_density)
 
+        self.create_fonts([24])
         self.create_outer_boundaries()
         self.create_substrate()
         self.populate_environment(organism)
+        
+
+    def display_fps(self):
+        "Data that will be rendered and blitted in _display"
+        self.render(
+            self.fonts[0],
+            what=str(int(self.clock.get_fps())),
+            color="red",
+            where=(10, 10))
+
+
+    def create_fonts(self, font_sizes_list):
+        "Creates different fonts with one list"
+        self.fonts = []
+        for size in font_sizes_list:
+            self.fonts.append(
+                pygame.font.SysFont("Arial", size))
+        return self.fonts
+
+
+    def render(self,fnt, what, color, where):
+        "Renders the fonts as passed from display_fps"
+        text_to_show = fnt.render(what, 0, pygame.Color(color))
+        self.window.blit(text_to_show, where)
+
 
     def draw(self):
         self.window.fill("white")
         self.space.debug_draw(self.draw_options)
-
-        self.GAME_FONT.render_to(
-            self.window, 
-            (40, 350), 
-            "Hello World!", 
-            (0, 0, 0)
-        )
+        self.display_fps()
+        
+        # self.GAME_FONT.render_to(
+        #     self.window, 
+        #     (40, 350), 
+        #     "Hello World!", 
+        #     (0, 0, 0)
+        # )
 
         # pygame.display.flip()
         pygame.display.update()
@@ -64,15 +91,17 @@ class Environment():
                 particle = pymunk.Body()
                 particle.position = (i*self.particle_density, j*self.particle_density)
                 
-                shape = pymunk.Circle(particle, 6)
+                shape = pymunk.Circle(particle, 3) # 6
                 shape.density = 1
                 shape.elasticity = 1
                 shape.friction = 0.02
                 shape.color = (55, 210,255, 100)
                 self.space.add(particle, shape)
 
-                initial_impulse = Vec2d(random.uniform(-1000, 1000), random.uniform(-1000, 1000))
+                initial_impulse = Vec2d(random.uniform(-600, 600), random.uniform(-600, 600))
                 pymunk.Body.update_velocity(particle, initial_impulse, 10, self.dt)
+
+        print(particle)
 
     def populate_environment(self, organism):
         self.space.add(organism.body.head.matter, organism.body.head.shape)
