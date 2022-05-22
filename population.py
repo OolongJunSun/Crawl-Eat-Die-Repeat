@@ -1,73 +1,74 @@
-import random
+import imp
 import uuid
+import random
 from organism import Organism
 
-class Cohort():
-    def __init__(self, n_indiviuals, surviving_genes, cohort=None) -> None:
+class Population():
+    def __init__(self, n_individuals) -> None:
+        self.n_individuals = n_individuals
         self.gene_size = 6
         self.n_genes = 13
         self.genome_length = int(self.n_genes*self.gene_size)
 
         self.cohort = {}
-        self.cohort_size = n_indiviuals
         self.survival_rate = 0.20
-        self.mutation_rate = 0.01 / (self.gene_size * self.n_genes)
-        self.n_elite = 6
-
-        self.gene_pool = self.initialize_genepool(self.cohort_size, surviving_genes)
-
-        if not cohort:
-            self.cohort = self.generate_cohort(self.gene_pool)
-        else:
-            self.cohort = cohort
+        self.mutation_rate = 0.01 / self.genome_length
+        self.elite_rate = 0.05
+        self.n_elite = int(self.elite_rate * self.n_individuals)
 
 
-    def initialize_genepool(self, n_individuals, surviving_genes="") -> str:
+    """
+        returns a space delimited string of hexadecimal digits
+    """
+    def initialize_genepool(self, surviving_genes="") -> str:
         gene_length = len(surviving_genes)
+        pool_size = int(self.n_individuals * self.n_genes * self.gene_size - gene_length)
 
-        pool_size = int(n_individuals * self.n_genes * self.gene_size - gene_length)
-
+        # Generate random hexadecimal string of length w/ len = pool_size
         gene_pool = f'%0{pool_size}x' % random.randrange(int(16**pool_size))
         gene_pool = surviving_genes + gene_pool
         gene_pool =  ' '.join(gene_pool[i:i+self.genome_length] for i in range(0, len(gene_pool), self.genome_length))
         
         return gene_pool
 
-    def generate_cohort(self, gene_pool) -> dict:
-        cohort = {}
+    def divide_genepool(self, gene_pool):
+        return ' '.join(gene_pool[i:i+self.genome_length] for i in range(0, len(gene_pool), self.genome_length))
+         
 
+    def generate_individuals(self, gene_pool) -> dict:
+        self.cohort = {}
         genomes = gene_pool.split(" ") 
         for genome in genomes:
+            # split the genome into space delimited genes
+            # i.e. abc123def789 -> abc1 23de f789 
             genes = ' '.join(genome[i:i+self.gene_size] for i in range(0, len(genome), self.gene_size))
-            if len(genes) < self.gene_size:
-                pass
-            else:
-                individual = Organism(genes, uuid.uuid4())
-            cohort.update({
-                individual: {
+
+            individual = Organism(genes, uuid.uuid4())
+            self.cohort.update({
+                individual.id: {
+                    "instance": individual,
                     "fitness": 0,
                     # "parents": None,
-                    "genome": genome
+                    "genome": genes
                 }
-            })
+            })    
 
-        return cohort
 
     def selection(self) -> None:
         sorted_cohort = sorted(self.cohort.items(),key=lambda k_v: k_v[1]['fitness'])
         
         self.reproducing_individuals = []
-        for idx, individual in enumerate(sorted_cohort[::-1]):
-            if idx >= int(self.cohort_size*self.survival_rate):
-                break
+        n_fit_individuals = int(self.n_individuals*self.survival_rate)
+        idx = self.n_individuals - n_fit_individuals - 1
 
+        for individual in sorted_cohort[:idx:-1]:
             self.reproducing_individuals.append(individual)  
 
         elite_individuals = self.reproducing_individuals[0:self.n_elite]
 
         self.elite_genes = ""
         for individual in elite_individuals:
-            self.elite_genes += "".join(individual[0].genes).strip("\n").replace(" ","")
+            self.elite_genes += " ".join(individual[1]["genome"]).strip("\n").replace(" ","")
 
         
     def reproduction(self) -> None:
@@ -84,12 +85,13 @@ class Cohort():
                 if (idx+1) % 2 == 0:
                     k = random.randint(1,2)
                     child_1, child_2 = self.k_point_crossover(k, breeding_pair, 2)
-                    children.append(child_1)
-                    children.append(child_2)
+                    children.append(child_1.replace(" ",""))
+                    children.append(child_2.replace(" ",""))
                     breeding_pair = []
 
-        # elistism
-        surviving_gene_pool = "".join(children) + self.elite_genes
+
+        # elistism <- replace 15 of new generation with elites
+        surviving_gene_pool = "".join(children[:-self.n_elite]) + self.elite_genes
 
         return surviving_gene_pool
 
@@ -136,7 +138,4 @@ class Cohort():
         ]
 
         mutated_genes = "".join(mutated_genes)
-
         return mutated_genes
-
-

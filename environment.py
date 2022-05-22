@@ -1,8 +1,8 @@
 import random
-import pygame
-import pygame.freetype
+# import pygame
+# import pygame.freetype
 import pymunk
-import pymunk.pygame_util
+# import pymunk.pygame_util
 from pymunk.vec2d import Vec2d
 
 class Environment():
@@ -16,7 +16,7 @@ class Environment():
         
         self.space = pymunk.Space()
         self.space.gravity = (0,0)
-        self.clock = pygame.time.Clock()
+        # self.clock = pygame.time.Clock()
         self.fps = 60
         self.dt = 1/self.fps
         # self.space.iterations = 1
@@ -30,51 +30,42 @@ class Environment():
         self.create_substrate()
         self.populate_environment(organism)
 
+    # def display_fps(self):
+    #     "Data that will be rendered and blitted in _display"
+    #     self.render(
+    #         self.fonts[0],
+    #         what=str(int(self.clock.get_fps())),
+    #         color="red",
+    #         where=(10, 10))
 
+
+    # def create_fonts(self, font_sizes_list):
+    #     "Creates different fonts with one list"
+    #     self.fonts = []
+    #     for size in font_sizes_list:
+    #         self.fonts.append(
+    #             pygame.font.SysFont("Arial", size))
+    #     return self.fonts
+
+
+    # def render(self,fnt, what, color, where):
+    #     "Renders the fonts as passed from display_fps"
+    #     text_to_show = fnt.render(what, 0, pygame.Color(color))
+    #     self.window.blit(text_to_show, where)
+
+
+    # def draw(self):
+    #     self.window.fill("white")
+    #     self.space.debug_draw(self.draw_options)
+    #     self.display_fps()
+        
+    #     rect = pygame.Rect(0, 0, self.WIDTH, self.HEIGHT)
+    #     sub = self.window.subsurface(rect)
+    #     pygame.image.save(sub, "screenshot.jpg")
         
 
-    def display_fps(self):
-        "Data that will be rendered and blitted in _display"
-        self.render(
-            self.fonts[0],
-            what=str(int(self.clock.get_fps())),
-            color="red",
-            where=(10, 10))
-
-
-    def create_fonts(self, font_sizes_list):
-        "Creates different fonts with one list"
-        self.fonts = []
-        for size in font_sizes_list:
-            self.fonts.append(
-                pygame.font.SysFont("Arial", size))
-        return self.fonts
-
-
-    def render(self,fnt, what, color, where):
-        "Renders the fonts as passed from display_fps"
-        text_to_show = fnt.render(what, 0, pygame.Color(color))
-        self.window.blit(text_to_show, where)
-
-
-    def draw(self):
-        self.window.fill("white")
-        self.space.debug_draw(self.draw_options)
-        self.display_fps()
-        
-        rect = pygame.Rect(0, 0, self.WIDTH, self.HEIGHT)
-        sub = self.window.subsurface(rect)
-        pygame.image.save(sub, "screenshot.jpg")
-        
-        # self.GAME_FONT.render_to(
-        #     self.window, 
-        #     (40, 350), 
-        #     "Hello World!", 
-        #     (0, 0, 0)
-        # )
-
-        # pygame.display.flip()
-        pygame.display.update()
+    #     # pygame.display.flip()
+    #     pygame.display.update()
 
     def create_outer_boundaries(self):
         rects = [

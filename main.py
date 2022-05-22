@@ -1,81 +1,71 @@
-import os
+
 import time
-import pygame
-import argparse
-from itertools import islice
+import multiprocessing
 from datetime import datetime
-from multiprocessing import Process, Manager
-from experiment import Experiment
-from population_loader import Loader
+from multiprocessing import Pool
+
 from environment import Environment
-from generation import Cohort
+from population import Population
+from utils import make_dir_w_exception
 
-# parser = argparse.ArgumentParser(description='.')
-# parser.add_argument('-lg', '--load_gen', type=str, help='relative path to generation folder')
 
-# args = parser.parse_args()
-# print(args.lg)
+def evaluate_individual(organism):
+    start = time.perf_counter()
+    env = Environment(organism[1]["instance"])
 
-def chunks(data, SIZE=64):
-    it = iter(data)
-    for i in range(0, len(data), SIZE):
-        yield {k:data[k] for k in islice(it, SIZE)}
+    n_steps = 60 * 10
+    i = 0
+    while i < n_steps:
+        organism[1]["instance"].calculate_fitness()
+        env.space.step(env.dt)
+        i += 1
 
-def main_loop():
-    pass
+    finish = time.perf_counter()
+    elapsed=finish-start
+    print(f"{elapsed=}")
+
+    fit = organism[1]["instance"].fitness
+    id = organism[1]["instance"].id
+    
+    return (id, fit)
+
+
+def start_process():
+    print('Starting', multiprocessing.current_process().name)
+
 
 if __name__ == "__main__":
-    pygame.init()
 
-    # e.g datetime.now format -> '2022-05-20 10:20:34.168220'
+    # # e.g datetime.now format -> '2022-05-20 10:20:34.168220'
     current_time = str(datetime.now())
     current_time = current_time.replace(" ","_").replace(":","-").split(".")[0]
     output_folder = f"runs/{current_time}"
-    try:
-        os.mkdir(output_folder)
-    except FileExistsError:
-        print("Output folder for this run already exists.")
+    make_dir_w_exception(output_folder)
 
+    # Evolution configs
     n_generations = 100
-    n_individuals = 2**8
-    sim_time = 10
+    n_individuals = 300
     surviving_genes = ""
 
-    # checkpoint_path = "D:\\02_Projects\\03_Active\\Evolution\\CEDR\\runs\\12_00"
-    # loader = Loader(checkpoint_path)
-    # surviving_genes = loader.gene_pool
+    population = Population(n_individuals)
+    gene_pool = population.initialize_genepool()
+    population.generate_individuals(gene_pool)
+
+    
+    pool = Pool(initializer=start_process)   
 
     for n in range(n_generations):
-        population = Cohort(n_individuals, surviving_genes)
-
-
         gen_folder = f"{output_folder}/gen-{n}"
-        try:
-            os.mkdir(gen_folder)
-        except FileExistsError:
-            print("Output folder for this generation already exists.")
+        make_dir_w_exception(gen_folder)
+
+        results = pool.map(evaluate_individual, population.cohort.items())
         
+        for result in results:
+            population.cohort[result[0]]["fitness"] = result[1]
+            with open(f"{gen_folder}/{str(int(result[1]))}_{result[0]}.txt", "w") as f:
+                f.write(f"{population.cohort[result[0]]['genome']}\n")
+                f.write(str(result[1]))
 
-        process_manager = manager = Manager()
-        return_dict = manager.dict()
-
-        runs = []
-        processes = []
-        chunk_size = 32
-        # Multiprocessing approach
-        for idx, chunk in enumerate(chunks(population.cohort, chunk_size)):
-            # print(f"Starting process {idx}...")
-            runs.append(Experiment(chunk,  sim_time, gen_folder, idx))
-            processes.append(Process(target=runs[idx].main_loop, args=(return_dict,)))
-
-        for process in processes:
-            process.start()
-        
-        for process in processes:
-            process.join()
-
-        population = Cohort(n_individuals, surviving_genes, return_dict)
-        
         total_fitness = 0
         for individual in population.cohort.values():
             total_fitness += individual["fitness"]
@@ -84,9 +74,11 @@ if __name__ == "__main__":
         with open(f"{gen_folder}/avg_fitness={str(mean_fitness)}.txt", "w") as f:
             pass
 
-        population.selection()
-        surviving_genes = population.reproduction()
-        surviving_genes = population.mutation(surviving_genes)
+        print(f"{mean_fitness=}")
 
-    print("goes hererererer")
-  
+        population.selection()
+        gene_pool = population.reproduction()
+        gene_pool = population.mutation(gene_pool)
+        offspring = population.divide_genepool(gene_pool)
+
+        population.generate_individuals(offspring)

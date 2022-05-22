@@ -2,11 +2,10 @@ import math
 import uuid
 import random
 import pymunk
-from typing import List
 from pymunk.vec2d import Vec2d
 from dataclasses import dataclass
 from appendages import Head, Limb
-
+from multiprocessing import Process, Value
 
 @dataclass(unsafe_hash=True)
 class Organism():
@@ -19,6 +18,9 @@ class Organism():
         self.prev_position = self.origin
         self.fitness = 0
         # self.mind = Mind(genome, self.id)
+
+    def __repr__(self) -> str:
+        return f'Organism(id={self.id})'
 
     def __str__(self) -> str:
         return f'Organism(id={self.id})'
@@ -33,7 +35,6 @@ class Organism():
 
     def update_energy(self):
         pass
-
 
 
 @dataclass        
