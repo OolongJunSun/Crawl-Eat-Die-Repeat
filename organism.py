@@ -5,7 +5,7 @@ import pymunk
 from pymunk.vec2d import Vec2d
 from dataclasses import dataclass
 from appendages import Head, Limb
-from multiprocessing import Process, Value
+# from multiprocessing import Process, Value
 
 @dataclass(unsafe_hash=True)
 class Organism():
@@ -64,7 +64,9 @@ class Body():
             self.add_limb(parent_id, part)
 
     def add_torso(self) -> None:
+        depth = 0
         part = self.body_parts[0]
+        self.torso_id = part.id
         part.matter.position = self.head.matter.position
         
         p1 = Vec2d(part.matter.position[0] + part.end_1[0],
@@ -82,10 +84,11 @@ class Body():
         joints = [pymunk.constraints.PinJoint(part.matter, self.head.matter),
                   pymunk.constraints.RotaryLimitJoint(part.matter, self.head.matter, 0,0)]
 
-        self.add_part_to_structure(part, joints, endpoints, None, self.head.id)
+        self.add_part_to_structure(part, joints, endpoints, None, self.head.id, depth)
 
     def add_limb(self, parent_id, part):
         parent = self.structure[parent_id]
+        depth = parent["depth"] + 1 
 
         if parent["parent"] == self.head.id:
             position = parent["endpoints"][part.side]
@@ -102,7 +105,7 @@ class Body():
 
         joints = self.create_joints(parent, part, p1)
 
-        self.add_part_to_structure(part, joints, endpoints, part.side, parent_id)
+        self.add_part_to_structure(part, joints, endpoints, part.side, parent_id, depth)
         
         parent["children"].append(part.id)
 
@@ -145,7 +148,7 @@ class Body():
 
         return joints
 
-    def add_part_to_structure(self, part, joints, endpoints, side, parent_id) -> None:
+    def add_part_to_structure(self, part, joints, endpoints, side, parent_id, depth) -> None:
         #add depth
         self.structure.update({
             part.id: {
@@ -154,24 +157,22 @@ class Body():
                 "endpoints": endpoints,
                 "side": side,
                 "parent": parent_id,
-                "children": []
-                #"depth" : X
+                "children": [],
+                "depth" : depth
             }
         })
 
     def select_parent(self, part) -> str:
-        parent_id = random.choice(list(self.structure))
+        side_filtered_dict = {k: v for k, v in self.structure.items() if v["side"] == part.side}
 
-        # we want to make sure that the parts we are connection are
-        # of the same side. since the torso is in the middle we ignore it
-        if self.structure[parent_id]["side"] != None:
-            if part.side != self.structure[parent_id]["side"]:
-                parent_id = self.select_parent(part)  
+        if len(side_filtered_dict) > 0:
+            if part.depth:
+                parent_id = max(side_filtered_dict.items(), key=lambda x: x[1]['depth'])[0]
+                print(f"{max(side_filtered_dict.items(), key=lambda x: x[1]['depth'])[0]=}")
+            else:
+                parent_id = min(side_filtered_dict.items(), key=lambda x: x[1]['depth'])[0]
+                print(f"{min(side_filtered_dict.items(), key=lambda x: x[1]['depth'])[0]=}")
+        else:
+            parent_id = self.torso_id
 
-        # # torso can have up to 4 children
-        # if self.structure[parent_id]["side"] == None and len(self.structure[parent_id]["children"]) < 6:
-        #     pass 
-        # elif len(self.structure[parent_id]["children"]) >= 2:
-        #     parent_id = self.select_parent(part)
-        
         return parent_id   

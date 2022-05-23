@@ -50,8 +50,8 @@ class Limb(Organ):
         self.DENSITY = 1.2
         self.FRICTION = 0.5
 
-        self.MAX_MOTOR_FORCE = 70000
-        self.MIN_MOTOR_FORCE = 40000
+        self.MAX_MOTOR_FORCE = 100000
+        self.MIN_MOTOR_FORCE = 70000
         self.MAX_SPRING_STIFFNESS = 1.2
         self.MIN_SPRING_STIFFNESS = 0.8
         self.MAX_SPRING_DAMPING = 1.3
@@ -69,6 +69,7 @@ class Limb(Organ):
         flip_x = int(self.gene_bin[10])
         flip_y = int(self.gene_bin[11])
         self.side = int(self.gene_bin[12]) # left = 0, right = 1
+        self.depth = int(self.gene_bin[13]) 
         
         v_x = self.scale(
             self.normalize(v_x), 
@@ -100,11 +101,11 @@ class Limb(Organ):
         self.end_1 = (-v_x/2, -v_y/2)
         self.end_2 = (v_x/2, v_y/2)
 
-        self.joint_mechanics = self.gene_bin[13:15]
+        self.joint_mechanics = self.gene_bin[14:16]
         
-        self.motor_direction = int(self.gene_bin[15])
-        self.motor_force = self.gene_bin[16:19]
-        self.spring_stiffness = self.gene_bin[19:22]
+        self.motor_direction = int(self.gene_bin[16])
+        self.motor_force = self.gene_bin[17:20]
+        self.spring_stiffness = self.gene_bin[20:22]
         self.spring_damping = self.gene_bin[22:24]
 
         self.motor_force = self.scale(
