@@ -22,7 +22,7 @@ class Head(Organ):
     id: str
 
     def __post_init__(self) -> None:
-        self.HEAD_POSITION = (256, 256)
+        self.HEAD_POSITION = (384, 384)
         self.DENSITY = 3
         self.HEAD_RADIUS = 12
 
@@ -43,15 +43,15 @@ class Limb(Organ):
     id: str 
 
     def __post_init__(self):
-        self.MAX_LENGTH = 32
-        self.MIN_LENGTH = 4
-        self.MAX_RADIUS = 5
-        self.MIN_RADIUS = 2
+        self.MAX_LENGTH = 30
+        self.MIN_LENGTH = 6
+        self.MAX_RADIUS = 4
+        self.MIN_RADIUS = 1.5
         self.DENSITY = 1.2
         self.FRICTION = 0.5
 
-        self.MAX_MOTOR_FORCE = 100000
-        self.MIN_MOTOR_FORCE = 70000
+        self.MAX_MOTOR_FORCE = 500000 #2000000
+        self.MIN_MOTOR_FORCE = 50000 #1500000
         self.MAX_SPRING_STIFFNESS = 1.2
         self.MIN_SPRING_STIFFNESS = 0.8
         self.MAX_SPRING_DAMPING = 1.3
@@ -70,6 +70,7 @@ class Limb(Organ):
         flip_y = int(self.gene_bin[11])
         self.side = int(self.gene_bin[12]) # left = 0, right = 1
         self.depth = int(self.gene_bin[13]) 
+        self.tree_index = int(self.gene_bin[14:16], 2)
         
         v_x = self.scale(
             self.normalize(v_x), 
@@ -101,18 +102,20 @@ class Limb(Organ):
         self.end_1 = (-v_x/2, -v_y/2)
         self.end_2 = (v_x/2, v_y/2)
 
-        self.joint_mechanics = self.gene_bin[14:16]
-        
-        self.motor_direction = int(self.gene_bin[16])
-        self.motor_force = self.gene_bin[17:20]
-        self.spring_stiffness = self.gene_bin[20:22]
-        self.spring_damping = self.gene_bin[22:24]
+        self.joint_mechanics = int(self.gene_bin[16:18], 2)
+        self.motor_direction = int(self.gene_bin[18])
+        self.motor_force = self.gene_bin[19:22]
+        self.spring_stiffness = self.gene_bin[22:24]
+        self.spring_damping = self.gene_bin[24:26]
 
         self.motor_force = self.scale(
             self.normalize(self.motor_force),
             self.MAX_MOTOR_FORCE,
             self.MIN_MOTOR_FORCE
         )
+
+        # print(self.joint_mechanics)
+        # print(self.motor_force)
 
         self.spring_stiffness = self.scale(
             self.normalize(self.spring_stiffness),
@@ -142,7 +145,7 @@ class Limb(Organ):
 
         self.shape.density = self.DENSITY
         self.shape.friction = self.FRICTION
-        self.shape.elasticity = 0
+        self.shape.elasticity = 0.5
         self.shape.color = (0,0,0,100)
 
 

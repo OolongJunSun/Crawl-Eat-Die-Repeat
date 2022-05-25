@@ -14,7 +14,7 @@ class Organism():
 
     def __post_init__(self) -> None:
         self.body = Body(self.genes, self.id)
-        self.origin = Vec2d(256,256)
+        self.origin = Vec2d(384,384)
         self.prev_position = self.origin
         self.fitness = 0
         # self.mind = Mind(genome, self.id)
@@ -119,7 +119,7 @@ class Body():
             )
         )
 
-        if int(part.joint_mechanics) >= 2:
+        if part.joint_mechanics >= 2:
             joints.append(
                 pymunk.constraints.DampedRotarySpring(
                     part.matter, 
@@ -130,7 +130,7 @@ class Body():
                 )
             )
 
-        if int(part.joint_mechanics) == 1 or int(part.joint_mechanics) == 3:    
+        if part.joint_mechanics == 1 or part.joint_mechanics == 3:    
             if part.motor_direction == 0:
                 motor = pymunk.constraints.SimpleMotor(
                     part.matter, 
@@ -165,13 +165,37 @@ class Body():
     def select_parent(self, part) -> str:
         side_filtered_dict = {k: v for k, v in self.structure.items() if v["side"] == part.side}
 
+        # print(f"{side_filtered_dict=}")
+        # print(f"{part.tree_index=}")
+
         if len(side_filtered_dict) > 0:
-            if part.depth:
-                parent_id = max(side_filtered_dict.items(), key=lambda x: x[1]['depth'])[0]
-                print(f"{max(side_filtered_dict.items(), key=lambda x: x[1]['depth'])[0]=}")
-            else:
-                parent_id = min(side_filtered_dict.items(), key=lambda x: x[1]['depth'])[0]
-                print(f"{min(side_filtered_dict.items(), key=lambda x: x[1]['depth'])[0]=}")
+            parent_id = max(side_filtered_dict.items(), key=lambda x: x[1]['depth'])[0]
+            max_depth = side_filtered_dict[parent_id]["depth"]
+            # print(f"{max_depth=}")
+
+            depth_filtered_dict = {k: v for k, v in side_filtered_dict.items() if v["depth"] == min(max_depth, part.tree_index+1)}
+            # print(f"{depth_filtered_dict=}")
+            parent_id = min(depth_filtered_dict.items(), key=lambda x: (len(x[1]['children'])))[0]
+            # print(f"{parent_id=}")
+
+            
+            # if part.depth:
+            #     depth_filtered_dict = {k: v for k, v in side_filtered_dict.items() if v["depth"] == max(max_depth, part.tree_index)}
+                
+                
+            #     parent_id = max(side_filtered_dict.items(), key=lambda x: x[1]['depth'])[0]
+
+            #     max_depth = side_filtered_dict[parent_id]["depth"]
+            #     # print(f"{max_depth=}")
+            #     # # print(min(len(side_filtered_dict), part.tree_index))
+            #     # print(f"{max(side_filtered_dict.items(), key=lambda x: x[1]['depth'])[0]=}")
+
+            #     # print(f"{parent_id=}")
+            # else:
+            #     # this is a problem. we need to add another encoding bit
+            #     # to select the index of the tree in the case of multiple maxes or mins
+            #     parent_id = min(side_filtered_dict.items(), key=lambda x: x[1]['depth'])[0]
+            #     # print(f"{parent_id=}")
         else:
             parent_id = self.torso_id
 

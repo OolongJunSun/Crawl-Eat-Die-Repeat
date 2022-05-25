@@ -1,16 +1,16 @@
 import uuid
 import pygame
 from organism import Organism
-from environment import Environment
+from g_env import Environment
 
 if __name__ == "__main__":
-    genome = "ac17b1 2d25d4 eb65a9 db2069 a9e34d 11e6e9 2bce38 d36858 51dd93 7fe9fb 9b6695 0e74ae 1107f3"
+    genome = "4006bc9 ee9d5e5 c6145ba fb967e9 ee8798f 5e774be 12775c5 e8e1e5f e8cd7da cd3f9a7 5f0dfc7 944c7fb 8ebf11d"
 
     organism = Organism(genome, uuid.uuid4())
     env = Environment(organism)
 
     i = 0
-    n_steps = env.fps * 10
+    n_steps = env.fps * 20
     while i < n_steps:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -22,3 +22,4 @@ if __name__ == "__main__":
         env.clock.tick(env.fps)
         i += 1
 
+        print(organism.fitness)

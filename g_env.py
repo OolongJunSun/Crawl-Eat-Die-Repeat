@@ -1,25 +1,25 @@
 import random
-# import pygame
+import pygame
 # import pygame.freetype
 import pymunk
-# import pymunk.pygame_util
+import pymunk.pygame_util
 from pymunk.vec2d import Vec2d
 
 class Environment():
     def __init__(self, organism) -> None:
         self.WIDTH, self.HEIGHT = 768, 768
 
-        # self.window = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
+        self.window = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
         # self.game_font = pygame.freetype.Font("your_font.ttf", 24)
-        # self.draw_options = pymunk.pygame_util.DrawOptions(self.window)
-        # self.draw_options.collision_point_color = (255, 255,255, 100)
+        self.draw_options = pymunk.pygame_util.DrawOptions(self.window)
+        self.draw_options.collision_point_color = (255, 255,255, 100)
         
         self.space = pymunk.Space()
         self.space.gravity = (0,0)
-        # self.clock = pygame.time.Clock()
+        self.clock = pygame.time.Clock()
         self.fps = 60
         self.dt = 1/self.fps
-        # self.space.iterations = 1
+        # self.space.iteractions = 1
 
         self.particle_density = 15 # 15
         self.n_particles_x = int(self.WIDTH/self.particle_density) 
@@ -54,18 +54,18 @@ class Environment():
     #     self.window.blit(text_to_show, where)
 
 
-    # def draw(self):
-    #     self.window.fill("white")
-    #     self.space.debug_draw(self.draw_options)
-    #     # self.display_fps()
+    def draw(self):
+        self.window.fill("white")
+        self.space.debug_draw(self.draw_options)
+        # self.display_fps()
         
-    #     # rect = pygame.Rect(0, 0, self.WIDTH, self.HEIGHT)
-    #     # sub = self.window.subsurface(rect)
-    #     # pygame.image.save(sub, "screenshot.jpg")
+        # rect = pygame.Rect(0, 0, self.WIDTH, self.HEIGHT)
+        # sub = self.window.subsurface(rect)
+        # pygame.image.save(sub, "screenshot.jpg")
         
 
-    #     # pygame.display.flip()
-    #     pygame.display.update()
+        # pygame.display.flip()
+        pygame.display.update()
 
     def create_outer_boundaries(self):
         rects = [
@@ -84,8 +84,9 @@ class Environment():
             shape.filter = pymunk.ShapeFilter(group=1)
 
     def create_substrate(self):
-        for j in range(2,self.n_particles_y-1):
-            for i in range(2,self.n_particles_x-1):
+        for j in range(1,self.n_particles_y):
+            for i in range(1,self.n_particles_x):
+
                 particle = pymunk.Body()
                 particle.position = (i*self.particle_density, j*self.particle_density)
                 

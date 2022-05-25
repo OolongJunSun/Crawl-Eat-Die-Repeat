@@ -1,4 +1,4 @@
-
+import os
 import time
 import multiprocessing
 from datetime import datetime
@@ -7,13 +7,15 @@ from multiprocessing import Pool
 from environment import Environment
 from population import Population
 from utils import make_dir_w_exception
+import faulthandler
+
 
 
 def evaluate_individual(organism):
     start = time.perf_counter()
     env = Environment(organism[1]["instance"])
 
-    n_steps = 60 * 10
+    n_steps = env.fps * 15
     i = 0
     while i < n_steps:
         organism[1]["instance"].calculate_fitness()
@@ -29,36 +31,63 @@ def evaluate_individual(organism):
     
     return (id, fit)
 
+def load_gene_pool(PATH):
+    gene_pool = ""
+    for file in os.listdir(PATH):
+        if not file.startswith("a"):
+            with open(os.path.join(PATH,file), "r") as f:
+                genome = f.readline()
+                gene_pool += genome.replace(" ","").strip("\n") 
+    return gene_pool        
 
 def start_process():
     print('Starting', multiprocessing.current_process().name)
 
 
 if __name__ == "__main__":
+    faulthandler.enable()
 
     # # e.g datetime.now format -> '2022-05-20 10:20:34.168220'
     current_time = str(datetime.now())
     current_time = current_time.replace(" ","_").replace(":","-").split(".")[0]
     output_folder = f"runs/{current_time}"
-    make_dir_w_exception(output_folder)
+    # make_dir_w_exception(output_folder)
 
     # Evolution configs
     n_generations = 100
-    n_individuals = 300
+    n_individuals = 500
     surviving_genes = ""
 
-    population = Population(n_individuals)
-    gene_pool = population.initialize_genepool()
-    population.generate_individuals(gene_pool)
+    gen = 1
 
+    PATH = f"D:\\02_Projects\\03_Active\\Evolution\\Crawl-Eat-Die-Repeat-broken\\runs\\2022-05-25_18-33-51\\gen-{gen}"
+    load_from_folder = False
+
+    population = Population(n_individuals)
+
+    if load_from_folder:
+        output_folder = "D:\\02_Projects\\03_Active\\Evolution\\Crawl-Eat-Die-Repeat-broken\\runs\\2022-05-25_18-33-51"
+        gen += 1
+        gene_pool = load_gene_pool(PATH)
+        gene_pool = population.divide_genepool(gene_pool)
+    else:
+        output_folder = f"runs/{current_time}"
+        make_dir_w_exception(output_folder)
+        gen = 0
+        gene_pool = population.initialize_genepool()
     
-    pool = Pool(initializer=start_process)   
+    population.generate_individuals(gene_pool)
+    
+    # pool = Pool(initializer=start_process)   
 
     for n in range(n_generations):
-        gen_folder = f"{output_folder}/gen-{n}"
+        gen_folder = f"{output_folder}/gen-{n+gen}"
         make_dir_w_exception(gen_folder)
 
-        results = pool.map(evaluate_individual, population.cohort.items())
+        with Pool(initializer=start_process) as pool:
+            results = pool.map(evaluate_individual, population.cohort.items())
+
+        time.sleep(1)
         
         for result in results:
             population.cohort[result[0]]["fitness"] = result[1]
@@ -77,8 +106,8 @@ if __name__ == "__main__":
         print(f"{mean_fitness=}")
 
         population.selection()
-        gene_pool = population.reproduction()
-        gene_pool = population.mutation(gene_pool)
-        offspring = population.divide_genepool(gene_pool)
+        offspring = population.reproduction()
+        offspring = population.mutation(offspring)
 
-        population.generate_individuals(offspring)
+        next_generation = population.initialize_genepool(offspring)
+        population.generate_individuals(next_generation)
