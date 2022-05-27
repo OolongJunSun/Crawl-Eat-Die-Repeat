@@ -50,12 +50,12 @@ class Limb(Organ):
         self.DENSITY = 1.2
         self.FRICTION = 0.5
 
-        self.MAX_MOTOR_FORCE = 500000 #2000000
+        self.MAX_MOTOR_FORCE = 1000000 #2000000
         self.MIN_MOTOR_FORCE = 50000 #1500000
-        self.MAX_SPRING_STIFFNESS = 1.2
-        self.MIN_SPRING_STIFFNESS = 0.8
-        self.MAX_SPRING_DAMPING = 1.3
-        self.MIN_SPRING_DAMPING = 0.7
+        self.MAX_SPRING_STIFFNESS = 0.2
+        self.MIN_SPRING_STIFFNESS = 0.001
+        self.MAX_SPRING_DAMPING = 2
+        self.MIN_SPRING_DAMPING = 0.1
 
 
         self.hex_to_bin()

@@ -20,6 +20,7 @@ def evaluate_individual(organism):
     while i < n_steps:
         organism[1]["instance"].calculate_fitness()
         env.space.step(env.dt)
+        env.obj_wrap(organism[1]["instance"])
         i += 1
 
     finish = time.perf_counter()
@@ -51,24 +52,22 @@ if __name__ == "__main__":
     current_time = str(datetime.now())
     current_time = current_time.replace(" ","_").replace(":","-").split(".")[0]
     output_folder = f"runs/{current_time}"
-    # make_dir_w_exception(output_folder)
 
     # Evolution configs
-    n_generations = 100
+    n_generations = 200
     n_individuals = 500
     surviving_genes = ""
 
-    gen = 1
-
-    PATH = f"D:\\02_Projects\\03_Active\\Evolution\\Crawl-Eat-Die-Repeat-broken\\runs\\2022-05-25_18-33-51\\gen-{gen}"
-    load_from_folder = False
+    load_from_folder = True
+    gen = 54
 
     population = Population(n_individuals)
 
     if load_from_folder:
-        output_folder = "D:\\02_Projects\\03_Active\\Evolution\\Crawl-Eat-Die-Repeat-broken\\runs\\2022-05-25_18-33-51"
+        output_folder = "D:\\02_Projects\\03_Active\\Evolution\\Crawl-Eat-Die-Repeat-broken\\runs\\2022-05-27_15-43-46"
+        save_path = os.path.join(output_folder, f"gen-{gen}")
         gen += 1
-        gene_pool = load_gene_pool(PATH)
+        gene_pool = load_gene_pool(save_path)
         gene_pool = population.divide_genepool(gene_pool)
     else:
         output_folder = f"runs/{current_time}"
@@ -78,14 +77,14 @@ if __name__ == "__main__":
     
     population.generate_individuals(gene_pool)
     
-    # pool = Pool(initializer=start_process)   
+    pool = Pool(initializer=start_process)   
 
     for n in range(n_generations):
         gen_folder = f"{output_folder}/gen-{n+gen}"
         make_dir_w_exception(gen_folder)
 
-        with Pool(initializer=start_process) as pool:
-            results = pool.map(evaluate_individual, population.cohort.items())
+        # with Pool(initializer=start_process) as pool:
+        results = pool.map(evaluate_individual, population.cohort.items())
 
         time.sleep(1)
         

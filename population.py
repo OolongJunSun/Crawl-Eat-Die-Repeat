@@ -13,7 +13,7 @@ class Population():
         self.cohort = {}
         self.survival_rate = 0.20
         self.mutation_rate = 0.01
-        self.elite_rate = 0.02
+        self.elite_rate = 0.002
         self.n_elite = int(self.elite_rate * self.n_individuals)
 
 
@@ -24,12 +24,9 @@ class Population():
         gene_length = len(surviving_genes)
         pool_size = int(self.n_individuals * self.n_genes * self.gene_size - gene_length)
         
-        # print(f"{pool_size=}")
-        # Generate random hexadecimal string of length w/ len = pool_size
         gene_pool = f'%0{pool_size}x' % random.randrange(int(16**pool_size))
         gene_pool = surviving_genes + gene_pool
-        # print(f"{gene_pool=}")
-        # print(f"{len(gene_pool)=}")
+
         return ' '.join(gene_pool[i:i+self.genome_length] for i in range(0, len(gene_pool), self.genome_length))
         
 
@@ -39,14 +36,10 @@ class Population():
          
 
     def generate_individuals(self, gene_pool) -> None:
-        self.cohort.clear()
+        self.cohort = {}
         genomes = gene_pool.split(" ") 
-        # print(f"{len(genomes)=}")
-        # print(genomes)
+
         for genome in genomes:
-            # print(f"{genome=}")
-            # split the genome into space delimited genes
-            # i.e. abc123def789 -> abc1 23de f789 
             genes = ' '.join(genome[i:i+self.gene_size] for i in range(0, len(genome), self.gene_size))
             individual = Organism(genes, uuid.uuid4())
             self.cohort.update({
@@ -61,20 +54,19 @@ class Population():
 
     def selection(self) -> None:
         sorted_cohort = sorted(self.cohort.items(),key=lambda k_v: k_v[1]['fitness'])
-        # print(f"{sorted_cohort=}")
         self.reproducing_individuals = []
         n_fit_individuals = int(self.n_individuals*self.survival_rate)
         idx = self.n_individuals - n_fit_individuals - 1
 
         for individual in sorted_cohort[:idx:-1]:
             self.reproducing_individuals.append(individual)  
-        # print(f"{self.reproducing_individuals=}")
+
         elite_individuals = self.reproducing_individuals[0:self.n_elite]
 
         self.elite_genes = ""
         for individual in elite_individuals:
             self.elite_genes += " ".join(individual[1]["genome"]).strip("\n").replace(" ","")
-        # print(f"{self.elite_genes=}")
+
         
     def reproduction(self) -> None:
         breeding_pair = []
@@ -94,8 +86,6 @@ class Population():
                     children.append(child_2.replace(" ",""))
                     breeding_pair = []
 
-        # print(f"{len(self.elite_genes)=}")
-        # print(f"{len(''.join(children))=}")
         # elistism <- replace 15 of new generation with elites
         # surviving_gene_pool = "".join(children[:-self.n_elite]) + self.elite_genes
         surviving_gene_pool = "".join(children) + self.elite_genes
@@ -144,17 +134,6 @@ class Population():
             else:
                 base_pair = str(int(not int(base_pair)))
                 mutated_genes.append(base_pair) 
-                # = int(base_pair, 16)+[-1,1][random.randrange(2)]
-                # if mutated_gene < 0:
-                #     mutated_gene = 0
-                # elif mutated_gene > 15:
-                #     mutated_gene = 15
-
-
-                # mutated_genes.append(f"{mutated_gene:x}")
-
-        # mutated_genes = [base_pair if random.uniform(0, 1) > self.mutation_rate else f"{int(base_pair, 16)+[-1,1][random.randrange(2)]:x}" 
-        #                 for base_pair in gene_pool]
 
         mutated_genes = "".join(mutated_genes)
         mutated_genes = '%0*X' % ((len(mutated_genes) + 3) // 4, int(mutated_genes, 2))
