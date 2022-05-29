@@ -37,6 +37,7 @@ class Head(Organ):
         self.shape.color = (0, 0, 0, 100)
 
 
+
 @dataclass
 class Limb(Organ):
     gene: str
@@ -47,7 +48,7 @@ class Limb(Organ):
         self.MIN_LENGTH = 6
         self.MAX_RADIUS = 4
         self.MIN_RADIUS = 1.5
-        self.DENSITY = 1.2
+        self.DENSITY = 0.4
         self.FRICTION = 0.5
 
         self.MAX_MOTOR_FORCE = 1000000 #2000000
@@ -147,6 +148,4 @@ class Limb(Organ):
         self.shape.friction = self.FRICTION
         self.shape.elasticity = 0.5
         self.shape.color = (0,0,0,100)
-
-
 

@@ -26,10 +26,10 @@ class Organism():
     def calculate_fitness(self):
         # distance = abs(self.prev_position-self.body.head.matter.position)
         # direction = math.atan((p2[0]-p1[0])/(p2[1]-p1[1]))
-        abs_distance = math.sqrt(abs(self.prev_position-self.body.head.matter.position))
-        distance_from_origin = abs(self.body.head.matter.position-self.origin)
-
-        self.fitness += (abs_distance * distance_from_origin**2) / 10000
+        abs_distance = abs(self.prev_position-self.body.head.matter.position)
+        # distance_from_origin = abs(self.body.head.matter.position-self.origin)
+        self.fitness += abs_distance
+        # self.fitness += (abs_distance * distance_from_origin**2) / 10000
         
         self.prev_position = self.body.head.matter.position
 
@@ -66,20 +66,49 @@ class Body():
     def add_torso(self) -> None:
         depth = 0
         part = self.body_parts[0]
+
+
         self.torso_id = part.id
-        part.matter.position = self.head.matter.position
+
+
+        part.matter = None
+        part.shape = None
+
+        p1 = Vec2d(-5,
+                   0)
+
+        p2 = Vec2d(5,
+                   0)
+
+        part.matter = pymunk.Body()
         
-        p1 = Vec2d(part.matter.position[0] + part.end_1[0],
-                   part.matter.position[1] + part.end_1[1])
+            
+        part.shape = pymunk.Segment(
+            part.matter,
+            p1,
+            p2,
+            7
+        )
 
-        p2 = Vec2d(part.matter.position[0] + part.end_2[0],
-                   part.matter.position[1] + part.end_2[1])
+        part.shape.density = 0.6
+        part.shape.friction = 0.5
+        part.shape.elasticity = 0.5
+        part.shape.color = (0,0,0,100)
 
-        # we always want the endpoint at index 0 to be on lhs of y axis 
-        if p1.x < 0:
-            endpoints = [p1,p2]
-        else:
-            endpoints = [p2,p1]
+        part.matter.position = self.head.matter.position
+
+        p1 = Vec2d(384-16,
+                   384)
+
+        p2 = Vec2d(384+16,
+                   384)
+
+        endpoints = [p1,p2]
+        # # we always want the endpoint at index 0 to be on lhs of y axis 
+        # if p1.x < 0:
+        #     endpoints = [p1,p2]
+        # else:
+        #     endpoints = [p2,p1]
 
         joints = [pymunk.constraints.PinJoint(part.matter, self.head.matter),
                   pymunk.constraints.RotaryLimitJoint(part.matter, self.head.matter, 0,0)]
@@ -119,32 +148,35 @@ class Body():
             )
         )
 
-        if part.joint_mechanics >= 2:
-            joints.append(
-                pymunk.constraints.DampedRotarySpring(
-                    part.matter, 
-                    parent["obj"].matter, 
-                    0, 
-                    part.spring_stiffness, 
-                    part.spring_damping
+        if parent["parent"] == self.head.id:
+            pass
+        else: 
+            if part.joint_mechanics >= 2:
+                joints.append(
+                    pymunk.constraints.DampedRotarySpring(
+                        part.matter, 
+                        parent["obj"].matter, 
+                        0, 
+                        part.spring_stiffness, 
+                        part.spring_damping
+                    )
                 )
-            )
 
-        if part.joint_mechanics == 1 or part.joint_mechanics == 3:    
-            if part.motor_direction == 0:
-                motor = pymunk.constraints.SimpleMotor(
-                    part.matter, 
-                    parent["obj"].matter, 
-                    -1000
-                )
-            else:
-                motor = pymunk.constraints.SimpleMotor(
-                    part.matter, 
-                    parent["obj"].matter, 
-                    1000
-                )
-            motor.max_force = part.motor_force
-            joints.append(motor)
+            if part.joint_mechanics == 1 or part.joint_mechanics == 3:    
+                if part.motor_direction == 0:
+                    motor = pymunk.constraints.SimpleMotor(
+                        part.matter, 
+                        parent["obj"].matter, 
+                        -5
+                    )
+                else:
+                    motor = pymunk.constraints.SimpleMotor(
+                        part.matter, 
+                        parent["obj"].matter, 
+                        5
+                    )
+                motor.max_force = part.motor_force
+                joints.append(motor)
 
         return joints
 

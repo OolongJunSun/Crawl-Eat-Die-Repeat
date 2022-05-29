@@ -9,19 +9,22 @@ from population import Population
 from utils import make_dir_w_exception
 import faulthandler
 
-
-
 def evaluate_individual(organism):
     start = time.perf_counter()
     env = Environment(organism[1]["instance"])
 
-    n_steps = env.fps * 15
+    n_steps = env.fps * 30
     i = 0
     while i < n_steps:
         organism[1]["instance"].calculate_fitness()
         env.space.step(env.dt)
         env.obj_wrap(organism[1]["instance"])
         i += 1
+
+    for shape in env.space.shapes:
+        env.space.remove(shape)
+        shape.body = None
+
 
     finish = time.perf_counter()
     elapsed=finish-start
@@ -58,13 +61,13 @@ if __name__ == "__main__":
     n_individuals = 500
     surviving_genes = ""
 
-    load_from_folder = True
-    gen = 54
+    load_from_folder = False
+    gen = 10
 
     population = Population(n_individuals)
 
     if load_from_folder:
-        output_folder = "D:\\02_Projects\\03_Active\\Evolution\\Crawl-Eat-Die-Repeat-broken\\runs\\2022-05-27_15-43-46"
+        output_folder = "D:\\02_Projects\\03_Active\\Evolution\\Crawl-Eat-Die-Repeat-broken\\runs\\2022-05-29_13-43-39"
         save_path = os.path.join(output_folder, f"gen-{gen}")
         gen += 1
         gene_pool = load_gene_pool(save_path)
@@ -86,7 +89,13 @@ if __name__ == "__main__":
         # with Pool(initializer=start_process) as pool:
         results = pool.map(evaluate_individual, population.cohort.items())
 
-        time.sleep(1)
+        for organism in population.cohort.values():
+            for limb in organism["instance"].body.structure.values():
+                limb["obj"].matter = None
+                limb["obj"].shape = None
+                for joint in limb["joints"]:
+                    joint = None 
+
         
         for result in results:
             population.cohort[result[0]]["fitness"] = result[1]

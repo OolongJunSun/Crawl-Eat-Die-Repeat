@@ -14,13 +14,13 @@ class Environment():
         self.fps = 60
         self.dt = 1/self.fps
 
-        self.particle_density = 30 # 15
+        self.particle_density = 25 # 15
         self.n_particles_x = int(self.WIDTH/self.particle_density) 
         self.n_particles_y = int(self.HEIGHT/self.particle_density)
 
         self.particles = []
 
-        self.create_outer_boundaries()
+        # self.create_outer_boundaries()
         self.create_substrate()
         self.populate_environment(organism)
 
@@ -73,29 +73,45 @@ class Environment():
     def create_substrate(self):
         for j in range(2,self.n_particles_y-1):
             for i in range(2,self.n_particles_x-1):
-                particle = pymunk.Body()
-                particle.position = (i*self.particle_density, j*self.particle_density)
-                
-                shape = pymunk.Circle(particle, 6) # 6 # 2.5
-                shape.density = 1.5
-                shape.elasticity = 0.999
-                shape.friction = 0.02
-                shape.color = (55, 210,255, 100)
-                self.space.add(particle, shape)
+                if ((i > int(340/self.particle_density) and 
+                    j > int(340/self.particle_density) and 
+                    i < int(430/self.particle_density) and 
+                    j < int(430/self.particle_density)) or
+                    i == 0 or j == 0 or 
+                    i == self.WIDTH/self.particle_density or 
+                    j == self.WIDTH/self.particle_density):
+                    continue
+                else:
+                    particle = pymunk.Body()
+                    particle.position = (i*self.particle_density, j*self.particle_density)
+                    
+                    shape = pymunk.Circle(particle, 6) # 6 # 2.5
+                    shape.density = 2.8
+                    shape.elasticity = 0.999
+                    shape.friction = 0.02
+                    shape.color = (55, 210,255, 100)
+                    self.space.add(particle, shape)
 
-                self.particles.append(particle)
+                    self.particles.append(particle)
 
-                initial_impulse = Vec2d(random.uniform(-2000, 2000), random.uniform(-2000, 2000))
-                pymunk.Body.update_velocity(particle, initial_impulse, 10, self.dt)
+                    initial_impulse = Vec2d(random.uniform(-800, 800), random.uniform(-800, 800))
+                    pymunk.Body.update_velocity(particle, initial_impulse, 10, self.dt)
 
 
     def populate_environment(self, organism):
         self.space.add(organism.body.head.matter, organism.body.head.shape)
-        organism.body.head.shape.filter = pymunk.ShapeFilter(group=2)
-        
-        for part in organism.body.structure.values():
-            self.space.add(part["obj"].matter, part["obj"].shape)
-            part["obj"].shape.filter = pymunk.ShapeFilter(group=2)
+        organism.body.head.shape.filter = pymunk.ShapeFilter(group=1)
 
-            for joint in part["joints"]:
-                self.space.add(joint)
+        for i, part in enumerate(organism.body.structure.values()):
+            if i == 0:
+                self.space.add(part["obj"].matter, part["obj"].shape)
+                part["obj"].shape.filter = pymunk.ShapeFilter(group=1)
+
+                for joint in part["joints"]:
+                    self.space.add(joint)
+            else:
+                self.space.add(part["obj"].matter, part["obj"].shape)
+                part["obj"].shape.filter = pymunk.ShapeFilter(group=2)
+
+                for joint in part["joints"]:
+                    self.space.add(joint)
