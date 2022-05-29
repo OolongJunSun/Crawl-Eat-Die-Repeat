@@ -167,13 +167,13 @@ class Body():
                     motor = pymunk.constraints.SimpleMotor(
                         part.matter, 
                         parent["obj"].matter, 
-                        -5
+                        -part.motor_speed
                     )
                 else:
                     motor = pymunk.constraints.SimpleMotor(
                         part.matter, 
                         parent["obj"].matter, 
-                        5
+                        part.motor_speed
                     )
                 motor.max_force = part.motor_force
                 joints.append(motor)

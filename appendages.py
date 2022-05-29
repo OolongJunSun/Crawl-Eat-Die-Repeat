@@ -53,6 +53,8 @@ class Limb(Organ):
 
         self.MAX_MOTOR_FORCE = 1000000 #2000000
         self.MIN_MOTOR_FORCE = 50000 #1500000
+        self.MAX_MOTOR_SPEED = 5
+        self.MIN_MOTOR_SPEED = 0.5
         self.MAX_SPRING_STIFFNESS = 0.2
         self.MIN_SPRING_STIFFNESS = 0.001
         self.MAX_SPRING_DAMPING = 2
@@ -106,8 +108,9 @@ class Limb(Organ):
         self.joint_mechanics = int(self.gene_bin[16:18], 2)
         self.motor_direction = int(self.gene_bin[18])
         self.motor_force = self.gene_bin[19:22]
-        self.spring_stiffness = self.gene_bin[22:24]
-        self.spring_damping = self.gene_bin[24:26]
+        self.motor_speed = self.gene_bin[22:25]
+        self.spring_stiffness = self.gene_bin[25:27]
+        self.spring_damping = self.gene_bin[27:29]
 
         self.motor_force = self.scale(
             self.normalize(self.motor_force),
@@ -115,8 +118,11 @@ class Limb(Organ):
             self.MIN_MOTOR_FORCE
         )
 
-        # print(self.joint_mechanics)
-        # print(self.motor_force)
+        self.motor_speed = self.scale(
+            self.normalize(self.motor_speed),
+            self.MAX_MOTOR_SPEED,
+            self.MIN_MOTOR_SPEED
+        )
 
         self.spring_stiffness = self.scale(
             self.normalize(self.spring_stiffness),
