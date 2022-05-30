@@ -55,8 +55,8 @@ class Limb(Organ):
         self.MIN_MOTOR_FORCE = 50000 #1500000
         self.MAX_MOTOR_SPEED = 5
         self.MIN_MOTOR_SPEED = 0.5
-        self.MAX_SPRING_STIFFNESS = 0.2
-        self.MIN_SPRING_STIFFNESS = 0.001
+        self.MAX_SPRING_STIFFNESS = 0.5
+        self.MIN_SPRING_STIFFNESS = 0.1
         self.MAX_SPRING_DAMPING = 2
         self.MIN_SPRING_DAMPING = 0.1
 
