@@ -58,7 +58,7 @@ if __name__ == "__main__":
 
     # Evolution configs
     n_generations = 200
-    n_individuals = 500
+    n_individuals = 10
     surviving_genes = ""
 
     load_from_folder = False
@@ -89,6 +89,7 @@ if __name__ == "__main__":
         # with Pool(initializer=start_process) as pool:
         results = pool.map(evaluate_individual, population.cohort.items())
 
+        print(results)
         for organism in population.cohort.values():
             for limb in organism["instance"].body.structure.values():
                 limb["obj"].matter = None
@@ -97,11 +98,19 @@ if __name__ == "__main__":
                     joint = None 
 
         
+        results_list = []
         for result in results:
             population.cohort[result[0]]["fitness"] = result[1]
-            with open(f"{gen_folder}/{str(int(result[1]))}_{result[0]}.txt", "w") as f:
-                f.write(f"{population.cohort[result[0]]['genome']}\n")
-                f.write(str(result[1]))
+
+            i_string = f"{str(result[1])} - {population.cohort[result[0]]['genome']}\n"
+            results_list.append(i_string)
+            
+        with open(f"{gen_folder}/individuals.txt", "w") as f:
+            for result in results_list:
+                print(result)
+                f.write(result)
+            # f.write(f"{population.cohort[result[0]]['genome']}\n")
+            # f.write(str(result[1]))
 
         total_fitness = 0
         for individual in population.cohort.values():
