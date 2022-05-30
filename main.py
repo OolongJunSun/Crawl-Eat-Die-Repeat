@@ -57,7 +57,7 @@ if __name__ == "__main__":
     output_folder = f"runs/{current_time}"
 
     # Evolution configs
-    n_generations = 250
+    n_generations = 100
     n_individuals = 1000
     surviving_genes = ""
 
