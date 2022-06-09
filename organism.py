@@ -13,7 +13,7 @@ class Organism():
 
     def __post_init__(self) -> None:
         self.body = Body(self.genes, self.id)
-        self.origin = Vec2d(384,384)
+        self.origin = Vec2d(0,0)
         self.prev_position = self.origin
         self.fitness = 0
 

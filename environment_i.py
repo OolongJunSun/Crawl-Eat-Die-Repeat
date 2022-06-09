@@ -8,8 +8,8 @@ from pymunk.vec2d import Vec2d
 
 
 class Environment():
-    def __init__(self, organism=None, draw=False) -> None:
-        self.WIDTH, self.HEIGHT = 764, 764
+    def __init__(self, organism=None, draw=None) -> None:
+        self.WIDTH, self.HEIGHT = 200, 200
 
 
         self.space = pymunk.Space()
@@ -17,10 +17,10 @@ class Environment():
         self.fps = 60
         self.dt = 1/self.fps
 
-        self.env_density = 35
-        self.v_init = 3000
-        self.particle_density = 1.25
-        self.particle_radius = 5
+        self.env_density = 50
+        self.v_init = 2000
+        self.particle_density = 2.8
+        self.particle_radius = 4
 
         self.particles = []
 
@@ -32,6 +32,10 @@ class Environment():
 
         handler = self.space.add_collision_handler(1,2)
         handler.pre_solve = self.wrap
+
+
+        self.i = 0
+        print(len(self.particles))
 
         if draw:
             self.window = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
@@ -58,6 +62,36 @@ class Environment():
         self.space.debug_draw(self.draw_options)
 
         pygame.display.update()
+
+    def obj_wrap(self, organism=None):
+        for particle in self.particles:
+            print(particle.position)
+            if particle.position.x < 0:
+                particle.position = (self.WIDTH, particle.position.y)
+            elif particle.position.x > self.WIDTH:
+                particle.position = (0, particle.position.y)
+            elif particle.position.y > self.HEIGHT:
+                particle.position = (particle.position.x, 0)
+            elif particle.position.y < 0:
+                particle.position = (particle.position.x, self.HEIGHT)
+
+        if organism:
+            if organism.body.head.matter.position.x < 0:
+                organism.body.head.matter.position = (self.WIDTH, organism.body.head.matter.position.y)
+                for part in organism.body.structure.values():
+                    part["obj"].matter.position = (self.WIDTH, part["obj"].matter.position.y)
+            elif organism.body.head.matter.position.x > self.WIDTH:
+                for part in organism.body.structure.values():
+                    part["obj"].matter.position = (0, part["obj"].matter.position.y)
+                organism.body.head.matter.position = (0, organism.body.head.matter.position.y)
+            elif organism.body.head.matter.position.y > self.HEIGHT:
+                for part in organism.body.structure.values():
+                    part["obj"].matter.position = (part["obj"].matter.position.x, 0)
+                organism.body.head.matter.position = (organism.body.head.matter.position.x, 0)
+            elif organism.body.head.matter.position.y < 0:
+                for part in organism.body.structure.values():
+                    part["obj"].matter.position = (part["obj"].matter.position.x, self.HEIGHT)
+                organism.body.head.matter.position = (organism.body.head.matter.position.x, self.HEIGHT)
 
 
     def create_outer_boundaries(self):
@@ -98,8 +132,8 @@ class Environment():
 
                 shape = pymunk.Circle(particle, self.particle_radius) # 6 # 2.5
                 shape.density = self.particle_density
-                shape.elasticity = 1
-                shape.friction = 0.01
+                shape.elasticity = 0.999
+                shape.friction = 0.02
                 shape.color = (55, 210,255, 100)
                 shape.collision_type = 1
                 self.space.add(particle, shape)
@@ -122,7 +156,7 @@ class Environment():
             if i == 0:
                 self.space.add(part["obj"].matter, part["obj"].shape)
                 part["obj"].shape.filter = pymunk.ShapeFilter(group=1)
-                
+
                 for joint in part["joints"]:
                     self.space.add(joint)
             else:

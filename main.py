@@ -13,12 +13,12 @@ def evaluate_individual(organism):
     start = time.perf_counter()
     env = Environment(organism[1]["instance"])
 
-    n_steps = env.fps * 30
+    n_steps = env.fps * 15
     i = 0
     while i < n_steps:
         organism[1]["instance"].calculate_fitness()
         env.space.step(env.dt)
-        env.obj_wrap(organism[1]["instance"])
+        # env.obj_wrap(organism[1]["instance"])
         i += 1
 
     for shape in env.space.shapes:

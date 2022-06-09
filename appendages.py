@@ -35,7 +35,7 @@ class Head(Organ):
         self.shape = pymunk.Circle(self.matter, self.HEAD_RADIUS)
         self.shape.density = self.DENSITY
         self.shape.color = (0, 0, 0, 100)
-
+        
 
 
 @dataclass
@@ -154,4 +154,3 @@ class Limb(Organ):
         self.shape.friction = self.FRICTION
         self.shape.elasticity = 0.5
         self.shape.color = (0,0,0,100)
-
