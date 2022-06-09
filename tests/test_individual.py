@@ -1,33 +1,45 @@
-import uuid
+import time
 import pygame
+import uuid
+
+import os, sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from environment import Environment
 from organism import Organism
-from g_env import Environment
 
 if __name__ == "__main__":
-    genome = "ED27D6B EFDDF7B DEDBFF3 DEDA056 FD5BFD5 FF9E5DB EF0B696 9EBBCAB 58515D5"
-    # genome = "53546ec fd04ce5 c470685 f723a3f 97269e7 c776e5d 53c64c9 4d63e71 f4bc592"
-    # A0D42E7 C2F5DDB 6691A19 C7AF175 E57BFC2 3F41CD6 986DFD9 76A2996 A263CF9 <- pop exploiter
-    genome = "CD4F06D FF96DE6 9B665FB DD017F8 838352C 2E21F9D EF6778D EFC75F7 ECE053E"
+    genome = "8FBB6DA 3D8FCEE BFBC24A DCC0D95 A6A6DA8 BACE55F FB1AB89 50CD8FD BD1887B"
 
     organism = Organism(genome, uuid.uuid4())
-    env = Environment(organism)
+
+    start = time.perf_counter()
+    
+    draw = True
+    env = Environment(organism, draw=draw)
+
+    n_steps = 600
 
     i = 0
-    n_steps = env.fps * 30
     while i < n_steps:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                ERROR_KEK
-        print(i)
-        organism.calculate_fitness()
-        env.draw()
-        env.obj_wrap(organism)
+        if draw:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    ERROR_KEK
+
+            env.draw()
+            env.clock.tick(env.fps)
+
         env.space.step(env.dt)
-        env.clock.tick(env.fps)
-        print(organism.fitness)
+        
+
         i += 1
 
     for shape in env.space.shapes:
         env.space.remove(shape)
         shape.body = None
-        
+
+    finish = time.perf_counter()
+    elapsed=finish-start
+
+    print(f"{elapsed=}")

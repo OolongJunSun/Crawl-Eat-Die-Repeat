@@ -11,13 +11,12 @@ class Environment():
     def __init__(self, organism=None, draw=False) -> None:
         self.WIDTH, self.HEIGHT = 764, 764
 
-
         self.space = pymunk.Space()
         self.space.gravity = (0,0)
         self.fps = 60
         self.dt = 1/self.fps
 
-        self.env_density = 35
+        self.env_density = 41
         self.v_init = 3000
         self.particle_density = 1.25
         self.particle_radius = 5
@@ -90,9 +89,12 @@ class Environment():
             self.HEIGHT-self.particle_radius, 
             self.env_density
         )
-
+        
         for i in x:
             for j in y:
+                if (i>344 and i<420) and (j>344 and j<420):
+                    continue
+
                 particle = pymunk.Body()
                 particle.position = (i, j)
 

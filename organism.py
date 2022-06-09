@@ -13,7 +13,7 @@ class Organism():
 
     def __post_init__(self) -> None:
         self.body = Body(self.genes, self.id)
-        self.origin = Vec2d(0,0)
+        self.origin = Vec2d(384,384)
         self.prev_position = self.origin
         self.fitness = 0
 
@@ -27,10 +27,9 @@ class Organism():
         # distance = abs(self.prev_position-self.body.head.matter.position)
         # direction = math.atan((p2[0]-p1[0])/(p2[1]-p1[1]))
         abs_distance = abs(self.prev_position-self.body.head.matter.position)
-        # distance_from_origin = abs(self.body.head.matter.position-self.origin)
-        self.fitness += abs_distance
-        # self.fitness += (abs_distance * distance_from_origin**2) / 10000
-        
+        distance_from_origin = abs(self.body.head.matter.position-self.origin)
+        self.fitness += abs_distance * distance_from_origin
+
         self.prev_position = self.body.head.matter.position
 
     def update_energy(self):
