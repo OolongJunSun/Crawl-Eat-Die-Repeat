@@ -1,4 +1,3 @@
-
 import uuid
 import random
 from individual import BasicProtein

@@ -1,11 +1,12 @@
 {
     "environment": {
+        "run_time": 10,
         "FPS": 60,
         "width": 784,
         "height": 784,
         "gravity_x": 0,
         "gravity_y": 0,
-        "substrate_density": 35,
+        "substrate_density": 10,
         "particle_density": 1,
         "particle_radius": 6,
         "particle_velocity": 3000
@@ -15,7 +16,7 @@
     },
     "gene_pool": {
         "load_from_checkpoint": "False",
-        "n_individuals": 50,
+        "n_individuals": 100,
         "allele_length": 7,
         "n_alleles": 9,
         "seed": 69420
@@ -26,7 +27,8 @@
         "elitism_rate": 0.002
     },
     "crossover": {
-
+        "method": "n-point",
+        "n": 1
     },
     "mutation": {
         "mutation_rate": 0.01

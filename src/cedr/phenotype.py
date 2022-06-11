@@ -3,27 +3,10 @@ from typing import Union
 from pymunk.vec2d import Vec2d
 from dataclasses import dataclass
 
-
-class Organ():
-    def hex_to_bin(self, gene) -> str:
-        scale = 16  # equals to hexadecimal
-        n_bits = 4
-        return bin(int(gene, scale))[2:].zfill(len(gene) * n_bits)
-
-    def normalize(self, char: str) -> float:
-        return float(int(char, 2) / 2 ** len(char))
-
-    def scale(
-        self,
-        norm_value: Union[int, float],
-        MAX: Union[int, float],
-        MIN: Union[int, float]
-    ) -> float:
-        return float(max(MIN, norm_value * MAX))
-
+from utils.encoding import *
 
 @dataclass
-class Head(Organ):
+class Head():
     id: str
 
     def __post_init__(self) -> None:
@@ -43,7 +26,7 @@ class Head(Organ):
 
 
 @dataclass
-class Limb(Organ):
+class Limb():
     gene: str
     id: str
 
@@ -64,7 +47,7 @@ class Limb(Organ):
         self.MAX_SPRING_DAMPING = 2
         self.MIN_SPRING_DAMPING = 0.1
 
-        self.gene_bin = self.hex_to_bin(self.gene)
+        self.gene_bin = hex_to_bin(self.gene)
         self.decode_gene()
         self.create()
 
@@ -78,14 +61,14 @@ class Limb(Organ):
         self.depth = int(self.gene_bin[13])
         self.tree_index = int(self.gene_bin[14:16], 2)
 
-        v_x = self.scale(
-            self.normalize(enc_x),
+        v_x = scale(
+            normalize(enc_x),
             self.MAX_LENGTH,
             self.MIN_LENGTH
         )
 
-        v_y = self.scale(
-            self.normalize(enc_y),
+        v_y = scale(
+            normalize(enc_y),
             self.MAX_LENGTH,
             self.MIN_LENGTH
         )
@@ -97,8 +80,8 @@ class Limb(Organ):
 
         self.v = Vec2d(v_x, v_y)
 
-        self.radius = self.scale(
-            self.normalize(radius),
+        self.radius = scale(
+            normalize(radius),
             self.MAX_RADIUS,
             self.MIN_RADIUS
         )
@@ -116,28 +99,28 @@ class Limb(Organ):
         enc_spring_stiffness = self.gene_bin[25:27]
         enc_spring_damping = self.gene_bin[27:29]
 
-        self.motor_force = self.scale(
-            self.normalize(enc_motor_force),
+        self.motor_force = scale(
+            normalize(enc_motor_force),
             self.MAX_MOTOR_FORCE,
             self.MIN_MOTOR_FORCE
         )
 
-        self.motor_speed = self.scale(
-            self.normalize(enc_motor_speed),
+        self.motor_speed = scale(
+            normalize(enc_motor_speed),
             self.MAX_MOTOR_SPEED,
             self.MIN_MOTOR_SPEED
         )
 
-        self.spring_stiffness = self.scale(
-            self.normalize(enc_spring_stiffness),
+        self.spring_stiffness = scale(
+            normalize(enc_spring_stiffness),
             self.MAX_SPRING_STIFFNESS,
             self.MIN_SPRING_STIFFNESS
         )
 
         self.spring_stiffness = self.spring_stiffness * self.motor_force
 
-        self.spring_damping = self.scale(
-            self.normalize(enc_spring_damping),
+        self.spring_damping = scale(
+            normalize(enc_spring_damping),
             self.MAX_SPRING_DAMPING,
             self.MIN_SPRING_DAMPING
         )
