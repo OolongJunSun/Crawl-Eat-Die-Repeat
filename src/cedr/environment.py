@@ -92,7 +92,7 @@ class SimpleHabitat():
 
         for n, i in enumerate(x):
             for m, j in enumerate(y):
-                if (i > 300 and i < 483) and (j > 300 and j < 483):
+                if (i > 314 and i < 454) and (j > 314 and j < 454):
                     continue
 
                 particle = pymunk.Body()

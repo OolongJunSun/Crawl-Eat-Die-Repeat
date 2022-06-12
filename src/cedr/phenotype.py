@@ -35,14 +35,14 @@ class Limb():
         self.MIN_LENGTH = 6     # 6
         self.MAX_RADIUS = 4     # 4
         self.MIN_RADIUS = 1.5   # 1.5
-        self.DENSITY = 1.2
-        self.FRICTION = 0.01
+        self.DENSITY = 0.05
+        self.FRICTION = 1
 
         self.MAX_MOTOR_FORCE = 1000000  # 2000000
         self.MIN_MOTOR_FORCE = 50000    # 1500000
-        self.MAX_MOTOR_SPEED = 5
-        self.MIN_MOTOR_SPEED = 0.5
-        self.MAX_SPRING_STIFFNESS = 0.5
+        self.MAX_MOTOR_SPEED = 3
+        self.MIN_MOTOR_SPEED = 0.3
+        self.MAX_SPRING_STIFFNESS = 1
         self.MIN_SPRING_STIFFNESS = 0.1
         self.MAX_SPRING_DAMPING = 2
         self.MIN_SPRING_DAMPING = 0.1
@@ -92,7 +92,8 @@ class Limb():
         self.end_1 = (-v_x/2, -v_y/2)
         self.end_2 = (v_x/2, v_y/2)
 
-        self.joint_mechanics = int(self.gene_bin[16:18], 2)
+        self.motor = int(self.gene_bin[16])
+        self.spring = int(self.gene_bin[17])
         self.motor_direction = int(self.gene_bin[18])
         enc_motor_force = self.gene_bin[19:22]
         enc_motor_speed = self.gene_bin[22:25]
@@ -138,5 +139,5 @@ class Limb():
 
         self.shape.density = self.DENSITY
         self.shape.friction = self.FRICTION
-        self.shape.elasticity = 1
+        self.shape.elasticity = 0
         self.shape.color = (0, 0, 0, 100)

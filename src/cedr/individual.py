@@ -140,7 +140,7 @@ class Body():
         if parent["parent"] == self.head.id:
             pass
         else:
-            if part.joint_mechanics >= 2:
+            if part.spring:
                 joints.append(
                     DampedRotarySpring(
                         part.matter,
@@ -151,8 +151,8 @@ class Body():
                     )
                 )
 
-            if part.joint_mechanics == 1 or part.joint_mechanics == 3:
-                if part.motor_direction == 0:
+            if part.motor:
+                if part.motor_direction:
                     motor = SimpleMotor(
                         part.matter,
                         parent["obj"].matter,

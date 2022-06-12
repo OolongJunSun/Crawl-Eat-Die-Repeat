@@ -4,7 +4,7 @@ from utils.encoding import hex_to_bin
 
 class Metrics():
     def __init__(self) -> None:
-        self.run_stats: Dict[str, Dict[str, Any]] = {}
+        self.run_stats = {}
         self.generation_stats: Dict[str, Any] = {}
 
     def update_hall_of_fame(self):
@@ -34,9 +34,6 @@ class Metrics():
         )
 
     def population_diversity(self, genomes: List[str]) -> None:        
-        genomes.sort()
-
-        print(genomes)
         genomes = [genome.replace(" ", "") for genome in genomes]
         binary_genes = [np.fromstring(hex_to_bin(genome),'u1') - ord('0') for genome in genomes]
 
@@ -44,7 +41,6 @@ class Metrics():
             np.sum([np.count_nonzero(base_genome!=comparison_genome) for base_genome in binary_genes]) / len(genomes)
             for comparison_genome in binary_genes
         ]
-        print(diversity_list)
         self.diversity_list = diversity_list 
 
     def population_mean_diversity(self) -> None:
@@ -55,8 +51,14 @@ class Metrics():
         )
 
     def update_run_stats(self, n: int) -> None:
+        key =  f"generation-{n}"
         self.run_stats.update(
             {
-                f"generation{n}": self.generation_stats
+               key: {
+                   "mean_fitness": self.generation_stats['mean_fitness'],
+                   "median_fitness": self.generation_stats['median_fitness'],
+                   "cutoff_fitness": self.generation_stats['cutoff_fitness'],
+                   "population_diversity": self.generation_stats['population_diversity'],
+               }
             }
         )

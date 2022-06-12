@@ -55,14 +55,16 @@ if __name__ == "__main__":
     io_manager.make_output_dir()
 
     # Initialise population
-    #   a) Randomly initialise
-    population = Population(cfg["gene_pool"])
-    population.init_gene_pool()
-    population.individuate_genomes()
-    population.generate_individuals()
-
-    #   b) Load from checkpoint
-    #   ADD THIS
+    if cfg["gene_pool"]["load_from_checkpoint"] == "True":
+        #   1) Load from checkpoint
+        PATH = "D:\\02_Projects\\03_Active\EvolutionV2\\CEDR_REWRITE\\src\\cedr\\runs\\2022-06-12_01-18-29\\generation-6"
+        gene_pool = io_manager.load_population(PATH)
+    else:
+        #   2) Randomly initialise
+        population = Population(cfg["gene_pool"])
+        population.init_gene_pool()
+        population.individuate_genomes()
+        population.generate_individuals()
 
     metrics = Metrics()
     selection = Selector(cfg["selection"])
@@ -84,17 +86,17 @@ if __name__ == "__main__":
         # Sort individuals by descending fitness
         results.sort(key=itemgetter(1), reverse=True)
 
-
         fitness_values = [result[1] for result in results]
         metrics.mean_fitness(fitness_values)
         metrics.median_fitness(fitness_values)
         metrics.cutoff_fitness(fitness_values, cfg["selection"]["survival_rate"])
 
-        ranked_genomes = [population.cohort[result[0]]["genome"] for result in results] 
+        ranked_genomes = [population.cohort[result[0]]["genome"] for result in results]
         metrics.population_diversity(ranked_genomes)
         metrics.population_mean_diversity()
         metrics.update_run_stats(generation)
-        print(metrics.generation_stats)
+
+        io_manager.output_data(population.cohort, results, metrics.generation_stats, metrics.run_stats)
 
         breeding_individuals = selection.methods[cfg["selection"]["method"]](ranked_genomes)
 
@@ -112,3 +114,5 @@ if __name__ == "__main__":
         population.gene_pool = mutated_gene_pool
         population.individuate_genomes()
         population.generate_individuals()
+
+    print(metrics.run_stats)

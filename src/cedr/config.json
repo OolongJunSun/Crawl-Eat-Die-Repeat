@@ -1,25 +1,25 @@
 {
     "environment": {
-        "run_time": 10,
+        "run_time": 60,
         "FPS": 60,
         "width": 784,
         "height": 784,
         "gravity_x": 0,
         "gravity_y": 0,
-        "substrate_density": 10,
+        "substrate_density": 51,
         "particle_density": 1,
-        "particle_radius": 6,
-        "particle_velocity": 3000
+        "particle_radius": 5,
+        "particle_velocity": 1200
     },
     "species": {
-        "n_generations": 250
+        "n_generations": 200
     },
     "gene_pool": {
         "load_from_checkpoint": "False",
-        "n_individuals": 100,
+        "n_individuals": 500,
         "allele_length": 7,
         "n_alleles": 9,
-        "seed": 69420
+        "seed": 27
     },
     "selection": {
         "method": "truncation",
