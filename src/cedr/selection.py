@@ -2,18 +2,19 @@ import numpy as np
 from typing import List, Tuple
 
 class Selector():
-    def __init__(self, cfg) -> None:
+    def __init__(self, cfg, seed) -> None:
         self.cfg = cfg
         self.methods = {
             "truncation": self.truncation
         }
-        self.pairs_per_individual = int(1 / self.cfg["survival_rate"])
+        self.pairs_per_individual = int(1 / cfg["survival_rate"])
+        self.rng = np.random.RandomState(seed)
 
     def form_pairs_randomly(self, individuals) -> List[Tuple]:
         pairs: List[Tuple] = []
 
         for _ in range(self.pairs_per_individual):
-            indicies = np.random.choice(
+            indicies = self.rng.choice(
                 len(individuals), 
                 size=(len(individuals)//2, 2), 
                 replace=False

@@ -46,7 +46,7 @@ class Metrics():
     def population_mean_diversity(self) -> None:
         self.generation_stats.update(
             {
-                "population_diversity": sum(self.diversity_list)
+                "mean_diversity": sum(self.diversity_list) / len(self.diversity_list)
             }
         )
 
@@ -58,7 +58,7 @@ class Metrics():
                    "mean_fitness": self.generation_stats['mean_fitness'],
                    "median_fitness": self.generation_stats['median_fitness'],
                    "cutoff_fitness": self.generation_stats['cutoff_fitness'],
-                   "population_diversity": self.generation_stats['population_diversity'],
+                   "mean_diversity": self.generation_stats['mean_diversity'],
                }
             }
         )

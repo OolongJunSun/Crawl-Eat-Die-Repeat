@@ -1,6 +1,9 @@
 import os
+import pprint
 from datetime import datetime
-    
+
+pp = pprint.PrettyPrinter(indent=4)
+
 
 class Manager():
     def __init__(self) -> None:
@@ -20,6 +23,13 @@ class Manager():
         except FileExistsError:
             print("Output folder for this run already exists.")
 
+
+    def save_run_config(self, cfg):
+        with open(f"{self.output_path}\\cfg.txt", "w") as f:
+            for key, value in cfg.items():
+                f.write(f"{str(key)} {str(value)}\n")
+
+
     def output_data(self, cohort, gen_results, gen_metrics, run_metrics):
         results_list = []
         for result in gen_results:
@@ -32,11 +42,14 @@ class Manager():
             for result in results_list:
                 f.write(result+"\n")
 
-        with open(f"{self.output_path}/metrics.txt", "w") as f:
+        with open(f"{self.output_path}\\metrics.txt", "w") as f:
             f.write(str(gen_metrics))
 
-        with open(f"{self.output_path}/running_metrics.txt", "w") as f:
-            f.write(str(run_metrics))
+        with open(f"{self.output_path}\\running_metrics.txt", "w") as f:
+            for key, value in run_metrics.items():
+                f.write(f"{str(key)} {str(value)}\n")
+
+        pp.pprint(run_metrics)
 
     def load_population(self, pop_path: str) -> str:
         with open(os.path.join(pop_path, "individuals.txt")) as f:

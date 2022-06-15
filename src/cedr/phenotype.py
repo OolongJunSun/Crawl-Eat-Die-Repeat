@@ -38,12 +38,12 @@ class Limb():
         self.DENSITY = 0.05
         self.FRICTION = 1
 
-        self.MAX_MOTOR_FORCE = 1000000  # 2000000
+        self.MAX_MOTOR_FORCE = 750000  # 2000000
         self.MIN_MOTOR_FORCE = 50000    # 1500000
         self.MAX_MOTOR_SPEED = 3
         self.MIN_MOTOR_SPEED = 0.3
-        self.MAX_SPRING_STIFFNESS = 1
-        self.MIN_SPRING_STIFFNESS = 0.1
+        self.MAX_SPRING_STIFFNESS = 0.4
+        self.MIN_SPRING_STIFFNESS = 0.05
         self.MAX_SPRING_DAMPING = 2
         self.MIN_SPRING_DAMPING = 0.1
 

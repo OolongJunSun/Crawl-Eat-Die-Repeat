@@ -4,18 +4,19 @@ from individual import BasicProtein
 
 
 class Population():
-    def __init__(self, cfg) -> None:
+    def __init__(self, cfg, seed) -> None:
         self.cfg = {}
         for key in cfg:
             self.cfg.update({key: cfg[key]})
 
+        self.seed = seed
+
     def init_gene_pool(self) -> None:
         pool_length = self.cfg["n_individuals"] * self.cfg["n_alleles"] * self.cfg["allele_length"]
 
-        if isinstance(self.cfg["seed"], int):
-            random.seed(self.cfg["seed"])
+        rng = random.Random(self.seed)
 
-        self.gene_pool = f'%0{pool_length}x' % random.randrange(int(16**pool_length))
+        self.gene_pool = f'%0{pool_length}x' % rng.randrange(int(16**pool_length))
 
     def individuate_genomes(self) -> None:
         genome_length = self.cfg["n_alleles"] * self.cfg["allele_length"]

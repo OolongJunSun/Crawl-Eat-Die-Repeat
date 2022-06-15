@@ -26,6 +26,7 @@ class SimpleHabitat():
         if individual:
             self.populate_environment(individual)
 
+        
         handler = self.space.add_collision_handler(1, 2)
         handler.pre_solve = self.wrap
 
@@ -56,14 +57,14 @@ class SimpleHabitat():
         pygame.display.update()
 
     def create_outer_boundaries(self):
-        rects = [
+        sensor_rects = [
             [(self.WIDTH/2, self.HEIGHT+self.particle_radius), (self.WIDTH, 1)],
             [(self.WIDTH/2, -self.particle_radius), (self.WIDTH, 1)],
             [(-self.particle_radius, self.HEIGHT/2), (1, self.HEIGHT)],
             [(self.WIDTH+self.particle_radius, self.HEIGHT/2), (1, self.HEIGHT)]
         ]
 
-        for pos, size in rects:
+        for pos, size in sensor_rects:
             body = pymunk.Body(body_type=pymunk.Body.STATIC)
             body.position = pos
             shape = pymunk.Poly.create_box(body, size)
@@ -72,6 +73,22 @@ class SimpleHabitat():
             self.space.add(body, shape)
 
             shape.filter = pymunk.ShapeFilter(group=1)
+
+        # boundary_rects = [
+        #     [(self.WIDTH/2, self.HEIGHT+3*self.particle_radius), (self.WIDTH+30, 1)],
+        #     [(self.WIDTH/2, -3*self.particle_radius), (self.WIDTH+30, 1)],
+        #     [(-3*self.particle_radius, self.HEIGHT/2), (1, self.HEIGHT+30)],
+        #     [(self.WIDTH+3*self.particle_radius, self.HEIGHT/2), (1, self.HEIGHT+30)]
+        # ]
+
+        # for pos, size in boundary_rects:
+        #     body = pymunk.Body(body_type=pymunk.Body.STATIC)
+        #     body.position = pos
+        #     shape = pymunk.Poly.create_box(body, size)
+        #     shape.sensor = False
+        #     self.space.add(body, shape)
+
+        #     # shape.filter = pymunk.ShapeFilter(group=1)
 
     def create_substrate(self, seed):
         x = np.linspace(
@@ -92,7 +109,7 @@ class SimpleHabitat():
 
         for n, i in enumerate(x):
             for m, j in enumerate(y):
-                if (i > 314 and i < 454) and (j > 314 and j < 454):
+                if (i > 333 and i < 451) and (j > 333 and j < 451):
                     continue
 
                 particle = pymunk.Body()

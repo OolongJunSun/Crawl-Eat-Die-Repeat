@@ -2,11 +2,14 @@ LICENSE
 pyproject.toml
 setup.cfg
 setup.py
-src/cedr/crossover.py
+src/cedr/data_manager.py
 src/cedr/environment.py
-src/cedr/geneaology.py
 src/cedr/individual.py
+src/cedr/inspect_individual.py
 src/cedr/main.py
+src/cedr/metrics.py
+src/cedr/mutation.py
+src/cedr/pbt.py
 src/cedr/phenotype.py
 src/cedr/population.py
 src/cedr/reproduction.py
