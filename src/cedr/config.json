@@ -1,6 +1,6 @@
 {
     "environment": {
-        "STATIC": 1,
+        "STATIC": 0,
         "seed": [101],
         "run_time": 40,
         "FPS": 60,
@@ -17,7 +17,7 @@
         "n_generations": 100
     },
     "gene_pool": {
-        "seed": [5, 69, 527, 1000, 2001],
+        "seed": [69, 527, 2001, 272727, 420420, 696969],
         "load_from_checkpoint": "False",
         "n_individuals": 200,
         "allele_length": 7,

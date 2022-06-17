@@ -1,20 +1,34 @@
 import os
 from typing import Dict, List
+from collections import namedtuple
 # from data_manager import load_population
 
 class Analyzer():
     def __init__(self) -> None:
+        self.population = []
         self.populations = {}
-        self.population_counter = 0
+        # self.population_counter = 0
 
+        columns = ['fitness', 'genome']
+        self.population_columns = namedtuple("Columns", " ".join(columns))
 
     """
         Load a population into the classes storage dictionary -> self.populations
     """
-    def load_population(self, path):
-        for folder in os.listdir(path):
-            print(folder)
+    def load_population(self, path, pop_counter):
+        with open(path, 'r') as f:
+            lines = f.readlines()
 
+        genomes = [line.split("-")[1][1:].strip() for line in lines]
+        fitnesses = [line.split("-")[0][:-1] for line in lines]
+
+        [self.population.append(
+                self.population_columns(fitness, genome)
+        ) for fitness, genome in zip(fitnesses, genomes)] 
+
+        self.populations.update({
+            f"population-{pop_counter}": self.population
+        })
 
     def remove_population(self, pop_id):
         pass

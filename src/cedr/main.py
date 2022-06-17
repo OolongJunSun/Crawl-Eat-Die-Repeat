@@ -8,13 +8,12 @@ from itertools import repeat, chain, product
 from operator import itemgetter
 
 from environment import SimpleHabitat
-from data_manager import Manager
-from metrics import Metrics
 from population import Population
 from selection import Selector
 from reproduction import Reproducer
 from mutation import Mutator
-
+from utils.data_manager import Manager
+from utils.metrics import Metrics
 
 def start_process():
     print('Starting', multiprocessing.current_process().name)
@@ -99,7 +98,7 @@ if __name__ == "__main__":
                 zip(repeat(cfg["environment"]), repeat(env_seed), population.cohort.values())
             )
 
-            # Sort individuals by descending fitness
+            # Sort individuals by descending fitness-
             results.sort(key=itemgetter(1), reverse=True)
 
             fitness_values = [result[1] for result in results]
