@@ -1,0 +1,19 @@
+{
+    "environment": {
+        "STATIC": 0,
+        "seed": [101],
+        "run_time": 40,
+        "FPS": 60,
+        "width": 784,
+        "height": 784,
+        "gravity_x": 0,
+        "gravity_y": 0,
+        "substrate_density": 33,
+        "particle_density": 1,
+        "particle_radius": 8.75,
+        "particle_velocity": 1200
+    },
+    "species": {
+        "n_generations": 100
+    }
+}
