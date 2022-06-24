@@ -1,6 +1,6 @@
 import numpy as np
 from typing import Any, Dict, List
-from utils.encoding import hex_to_bin
+from cedr.utils.encoding import hex_to_bin
 
 class Metrics():
     def __init__(self) -> None:

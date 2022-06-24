@@ -16,15 +16,17 @@ class Analyzer():
         Load a population into the classes storage dictionary -> self.populations
     """
     def load_population(self, path, pop_counter):
+        self.population = []
+        
         with open(path, 'r') as f:
             lines = f.readlines()
 
         genomes = [line.split("-")[1][1:].strip() for line in lines]
         fitnesses = [line.split("-")[0][:-1] for line in lines]
 
-        [self.population.append(
-                self.population_columns(fitness, genome)
-        ) for fitness, genome in zip(fitnesses, genomes)] 
+        for fitness, genome in zip(fitnesses, genomes):
+            self.population.append(self.population_columns(fitness, genome)) 
+         
 
         self.populations.update({
             f"population-{pop_counter}": self.population
