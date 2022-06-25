@@ -22,6 +22,7 @@ class GUI():
 
         self.start_render_loop()
 
+
     """
         Dear pygui setup, config and initialisation functions
     """
@@ -32,9 +33,11 @@ class GUI():
         dpg.show_viewport()
         
     def dear_pygui_configuration(self, maximise: bool) -> None:
+        dpg.configure_app(docking=True, docking_space=False)
         dpg.set_global_font_scale(1.25)
 
         self.set_global_theme()
+        self.set_important_btn_theme()
 
         user32 = ctypes.windll.user32
         screen_w = user32.GetSystemMetrics(0) 
@@ -86,7 +89,6 @@ class GUI():
     """
     def set_global_theme(self):
         with dpg.theme() as global_theme:
-
             with dpg.theme_component(dpg.mvAll):
                 dpg.add_theme_color(
                     dpg.mvThemeCol_WindowBg, 
@@ -140,6 +142,45 @@ class GUI():
                 )
 
         dpg.bind_theme(global_theme)      
+
+    def set_important_btn_theme(self):
+        with dpg.theme() as self.important_btn_theme:
+            with dpg.theme_component(dpg.mvAll):
+                dpg.add_theme_color(
+                    dpg.mvThemeCol_Button, 
+                    (255, 255, 255), 
+                    category=dpg.mvThemeCat_Core
+                )
+
+                dpg.add_theme_color(
+                    dpg.mvThemeCol_Text, 
+                    (0, 0, 0), 
+                    category=dpg.mvThemeCat_Core
+                )
+
+                dpg.add_theme_color(
+                    dpg.mvThemeCol_ButtonHovered, 
+                    (200, 200, 200), 
+                    category=dpg.mvThemeCat_Core
+                )
+
+                dpg.add_theme_color(
+                    dpg.mvThemeCol_ButtonActive, 
+                    (100, 100, 100), 
+                    category=dpg.mvThemeCat_Core
+                )
+
+                dpg.add_theme_color(
+                    dpg.mvThemeCol_Border, 
+                    (255, 255, 255), 
+                    category=dpg.mvThemeCat_Core
+                )
+
+                dpg.add_theme_style(
+                    dpg.mvStyleVar_FrameRounding, 
+                    100, 
+                    category=dpg.mvThemeCat_Core
+                )
 
     """
         GUI Windows
@@ -223,6 +264,29 @@ class GUI():
                     pos=(5,30),
                     show=False
                 ):
+
+            with dpg.group(
+                        label='grp_generate_metrics',
+                        horizontal=True,
+                        horizontal_spacing=15
+                    ):
+                dpg.add_button(
+                    label='Generate metrics for this run',
+                    tag='btn_generate_metrics',
+                    callback=self.calculate_run_metrics
+                )
+                dpg.bind_item_theme(
+                    'btn_generate_metrics',
+                    self.important_btn_theme
+                )
+
+                dpg.add_progress_bar(
+                    label='Progress = X',
+                    tag='prg_generate_metrics',
+                    width=495,
+                    show=False
+                )
+            
             dpg.add_combo(
                 label='Run select', 
                 tag='cmb_run_select',
@@ -273,6 +337,92 @@ class GUI():
                     indent=4
                 )
 
+            with dpg.collapsing_header(
+                        label="Fitness Plots",
+                        tag='ch_fit_plots'
+                    ):
+                
+                with dpg.collapsing_header(
+                        label="Mean fitness",
+                        tag='ch_mean_fitness',
+                        indent=12,
+                    ):
+                
+
+                    with dpg.plot(
+                            tag='plot_mean_fitness',
+                            width=1030,
+                            height=320,
+                            anti_aliased=True,
+                            no_mouse_pos=True,
+                        ):
+                        dpg.add_plot_axis(
+                            tag='axis_mean_fitness',
+                            axis=0,
+                            lock_min=True,
+                        )
+                        dpg.add_plot_legend(
+                            label='binance'
+                        )
+
+
+                with dpg.collapsing_header(
+                        label="Median fitness",
+                        tag='ch_median_fitness',
+                        indent=12,
+                    ):
+                
+                    with dpg.plot(
+                            tag='plot_median_fitness',
+                            width=1030,
+                            height=320,
+                            anti_aliased=True,
+                            no_mouse_pos=True,
+                        ):
+                        dpg.add_plot_axis(
+                            tag='axis_median_fitness',
+                            axis=0,
+                            lock_min=True,
+                        )
+                        dpg.add_plot_legend(
+                            label='binance'
+                        )
+
+                with dpg.collapsing_header(
+                        label="Cut-off fitness",
+                        tag='ch_cutoff_fitness',
+                        indent=12,
+                    ):
+                
+                    with dpg.plot(
+                            tag='plot_cutoff_fitness',
+                            width=1030,
+                            height=320,
+                            anti_aliased=True,
+                            no_mouse_pos=True,
+                        ):
+                        dpg.add_plot_axis(
+                            tag='axis_cutoff_fitness',
+                            axis=0,
+                            lock_min=True,
+                        )
+                        dpg.add_plot_legend(
+                            label='binance'
+                        )
+
+            with dpg.collapsing_header(
+                        label='Diversity',
+                        tag='ch_diversity'
+                    ):
+                pass
+
+            with dpg.collapsing_header(
+                        label='Schemata',
+                        tag='ch_schemata'
+                    ):
+                pass
+
+
     def duplicate_selection_popup(self):
         with dpg.window(
                 label='Warning: Duplicate run',
@@ -301,6 +451,8 @@ class GUI():
     def explorer_select(self, sender, app_data, user_data):
         dpg.hide_item('win_intro')
 
+        if self.current_visible_table:
+            dpg.hide_item(self.current_visible_table)
 
         path = app_data['current_path']
         run_name = path.split('\\')[-1]
@@ -313,10 +465,8 @@ class GUI():
 
         self.update_run_selector()
         self.update_generation_selector(run_name)
-        self.add_metrics_checkbox()
 
         dpg.show_item('win_runs')
-        dpg.show_item('win_metrics')
 
     @staticmethod
     def toggle_popup(sender, app_data, user_data):
@@ -335,19 +485,68 @@ class GUI():
         pass
 
     def toggle_all(self, sender):
-        checkbox_tags = [f"cb_enable_box_{i+1}" 
-                         for i in range(self.box_counter)]
-        print(checkbox_tags)
-        state = dpg.get_value(sender)
+        runs = self.metrics.runs
 
-        if state:
-            for tag in checkbox_tags:
+        checkbox_tags = [f"cb_enable_box_{run}" 
+                         for run in runs]
+
+        state = dpg.get_value(sender)
+        
+        for tag, run in zip(checkbox_tags, runs):
+            if state:
                 dpg.set_value(tag, True)
-            # self.active_pops = [1 for _ in self.active_pops]
-        else:
-            for tag in checkbox_tags:
+            else:
                 dpg.set_value(tag, False)
-            # self.active_pops = [0 for _ in self.active_pops]
+
+            callback = dpg.get_item_callback(tag)(
+                sender=tag,
+                app_data=None,
+                user_data=run
+            )
+            print(callback)
+
+
+
+    def calculate_run_metrics(self):
+        dpg.show_item('prg_generate_metrics')
+        run = dpg.get_value('cmb_run_select')
+        
+        self.tracked_metrics = [
+            'mean_fitness',
+            'median_fitness',
+            'cutoff_fitness'
+        ]
+
+        for i, (gen, population) in enumerate(self.analyzer.runs[run].items()):
+            fitnesses = [float(individual.fitness) for individual in population]
+            genomes = [individual.genome for individual in population]
+
+            self.metrics.mean_fitness(fitnesses)
+            self.metrics.median_fitness(fitnesses)
+            self.metrics.cutoff_fitness(fitnesses, 0.2)
+            self.metrics.population_diversity(genomes)
+            self.metrics.mean_diversity()
+            self.metrics.update_run_stats(gen)
+
+            dpg.set_value(
+                'prg_generate_metrics', 
+                i / (len(self.analyzer.runs[run]) - 1)
+            )
+
+        self.add_metrics_checkbox()
+        self.metrics.add_to_runs(run)
+        self.add_line_plots(self.tracked_metrics)
+
+        dpg.hide_item('prg_generate_metrics')
+        dpg.show_item('win_metrics')
+        
+    def toggle_run_metrics(self, sender, app_data, user_data):
+        state = dpg.get_value(sender)
+        for metric in self.tracked_metrics:
+            if state:
+                dpg.show_item(f'ls_{user_data}-{metric}')
+            else:
+                dpg.hide_item(f'ls_{user_data}-{metric}')
 
     """
         State functions
@@ -381,11 +580,11 @@ class GUI():
             'cmb_generation_select', 
             items=list(self.analyzer.runs[run_name].keys())
         )
+        dpg.set_value('cmb_generation_select', None)
 
     def update_run_table(self, generation):
         selected_run = dpg.get_value('cmb_run_select')
 
-        # print(dpg.get_item_configuration('tbl_generation_view'))
         if self.current_visible_table:
             dpg.hide_item(self.current_visible_table)
 
@@ -405,8 +604,7 @@ class GUI():
             dpg.add_table_column(label="Rank", width_fixed=True)
             dpg.add_table_column(label="Genome")
             dpg.add_table_column(label="Fitness", width_fixed=True)
-            for rank, individual in population.items():
-                individual = list(individual)[0]
+            for rank, individual in enumerate(population):
                 with dpg.table_row(parent=f'tbl_{selected_run}-{generation}'):
                     dpg.add_text(f"{int(rank)+1}")
                     dpg.add_button(
@@ -427,22 +625,39 @@ class GUI():
                         parent='ch_select',
                         tag=f'enable_box_row-{self.enable_box_row}', 
                         indent=4,
-                        horizontal=True, 
+                        horizontal=True,
                         horizontal_spacing=25
                     ):
                 pass
+
+        run = dpg.get_value('cmb_run_select')
 
         dpg.add_checkbox(
             enabled=True,
             default_value=True,
             label=list(self.analyzer.runs.keys())[-1],
-            tag=f"cb_enable_box_{self.box_counter}",
+            tag=f"cb_enable_box_{run}",
             parent=f"enable_box_row-{self.enable_box_row}",
-            # callback=self.toggle_select,
-            user_data=self.box_counter-1,
+            callback=self.toggle_run_metrics,
+            user_data=run
         )
 
-        
+    def add_line_plots(self, metrics: list[str]):
+        run = dpg.get_value('cmb_run_select')
+
+        for metric in metrics:
+            n_generations = len(self.metrics.runs[run])
+            value_series = [float(generation[metric]) 
+                            for generation in self.metrics.runs[run].values()]
+
+            dpg.add_line_series(
+                parent=f'axis_{metric}',
+                tag=f'ls_{run}-{metric}',
+                x=list(range(n_generations)),
+                y=value_series
+            )
+
+
 
 if __name__ == '__main__':
     gui = GUI(True)

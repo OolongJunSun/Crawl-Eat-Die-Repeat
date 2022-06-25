@@ -28,24 +28,26 @@ class Analyzer():
         })
 
         for folder in os.listdir(path):
+
             if 'cfg' in folder:
                 pass
                 # self.runs['run_name'].update(
 
                 # )
             elif 'generation' in folder:
-                self.runs[run_name].update({
-                    folder: {}
-                })
 
                 ind_file = os.path.join(path, folder, 'individuals.txt')
                 lines = self.read_generation(ind_file)
                 individuals = self.format_generation(lines)
 
-                for rank, individual in enumerate(individuals):
-                    self.runs[run_name][folder].update({
-                        f'{rank}': {individual}
-                    })  
+                self.runs[run_name].update({
+                    folder: individuals
+                })
+
+                # for rank, individual in enumerate(individuals):
+                #     self.runs[run_name][folder].update({
+                #         f'{rank}': {individual}
+                #     })  
 
             else:
                 raise FolderNotHandledException

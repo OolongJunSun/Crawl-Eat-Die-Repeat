@@ -4,6 +4,7 @@ from cedr.utils.encoding import hex_to_bin
 
 class Metrics():
     def __init__(self) -> None:
+        self.runs = {}
         self.run_stats = {}
         self.generation_stats: Dict[str, Any] = {}
 
@@ -43,15 +44,14 @@ class Metrics():
         ]
         self.diversity_list = diversity_list 
 
-    def population_mean_diversity(self) -> None:
+    def mean_diversity(self) -> None:
         self.generation_stats.update(
             {
                 "mean_diversity": sum(self.diversity_list) / len(self.diversity_list)
             }
         )
 
-    def update_run_stats(self, n: int) -> None:
-        key =  f"generation-{n}"
+    def update_run_stats(self, key: str) -> None:
         self.run_stats.update(
             {
                key: {
@@ -62,3 +62,9 @@ class Metrics():
                }
             }
         )
+
+    def add_to_runs(self, key: str) -> None:
+        self.runs.update({
+            key: self.run_stats
+        })
+        self.run_stats = {}

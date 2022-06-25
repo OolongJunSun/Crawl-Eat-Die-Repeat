@@ -108,7 +108,7 @@ if __name__ == "__main__":
 
             ranked_genomes = [population.cohort[result[0]]["genome"] for result in results]
             metrics.population_diversity(ranked_genomes)
-            metrics.population_mean_diversity()
+            metrics.mean_diversity()
             metrics.update_run_stats(generation)
 
             io_manager.output_data(population.cohort, results, metrics.generation_stats, metrics.run_stats)
