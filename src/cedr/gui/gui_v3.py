@@ -1,3 +1,4 @@
+from msilib import add_data
 import os
 import sys
 import ctypes
@@ -458,7 +459,17 @@ class GUI():
                         label='Simulation configuration',
                         tag='ch_sim_cfg'
                     ):
-                dpg.add_text('Placeholder text for now')
+
+                for category in self.previewer.cfg:
+                    for param, value in self.previewer.cfg[category].items():
+                        dpg.add_input_int(
+                            label=param,
+                            tag=f'input_{param}',
+                            default_value=value,
+                            indent=12,
+                            callback=self.update_simulation_config,
+                            user_data=[category, param, value]
+                        )   
 
             dpg.add_button(
                 label='Run',
@@ -613,6 +624,17 @@ class GUI():
         self.previewer.create_individual()
         self.previewer.create_environment()
         self.previewer.simulate()
+
+    def update_simulation_config(self, sender, app_data, user_data):
+        print(user_data)
+        print(add_data)
+
+        value = dpg.get_value(sender)
+        print(value)
+        print(self.previewer.cfg)
+        self.previewer.cfg[user_data[0]][user_data[1]] = value
+        print(self.previewer.cfg)
+        print('')
 
     """
         State functions

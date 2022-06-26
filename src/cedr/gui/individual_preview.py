@@ -12,7 +12,7 @@ from cedr.individual import BasicProtein
 class Previewer():
     def __init__(self, cfg: str = None) -> None:
         with open("simulation_config.json") as json_data_file:
-            self.cfg = json.load(json_data_file)
+            self._cfg = json.load(json_data_file)
 
         self._genome = None
         
@@ -28,6 +28,18 @@ class Previewer():
     def genome(self):
         del self._genome    
 
+    @property
+    def cfg(self):
+        return self._cfg
+
+    @cfg.setter
+    def cfg(self, category, key, value):
+        self._cfg[category][key] = value
+
+    @cfg.deleter
+    def cfg(self, category, key):
+        del self._cfg[category][key]    
+
     def create_individual(self):
         self.individual = BasicProtein(self.genome, uuid.uuid4())
 
@@ -40,13 +52,13 @@ class Previewer():
         )
 
     def simulate(self):
-        n_steps = 100
+        n_steps = self.cfg['environment']['run_time'] * self.env.fps
 
         i = 0
         while i < n_steps:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    ERROR_KEK
+                    pygame.quit()
             self.individual.calculate_fitness()
             print(self.individual.fitness)
                 
