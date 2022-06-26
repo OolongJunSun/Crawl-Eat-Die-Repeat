@@ -39,11 +39,14 @@ class GUI():
         dpg.show_viewport()
         
     def dear_pygui_configuration(self, maximise: bool) -> None:
-        dpg.configure_app(docking=True, docking_space=False)
+        dpg.configure_app(docking=True, docking_space=True)
         dpg.set_global_font_scale(1.25)
 
         self.set_global_theme()
         self.set_important_btn_theme()
+        self.set_previewer_theme()
+
+        # dpg.show_implot_demo()
 
         user32 = ctypes.windll.user32
         screen_w = user32.GetSystemMetrics(0) 
@@ -110,45 +113,38 @@ class GUI():
                     value=(0, 0, 0), 
                     category=dpg.mvThemeCat_Core
                 )
-
                 dpg.add_theme_style(
                     dpg.mvStyleVar_FrameRounding, 
                     x=5, 
                     category=dpg.mvThemeCat_Core
                 )
-
                 dpg.add_theme_style(
                     dpg.mvStyleVar_WindowPadding, 
                     x=15, 
                     y=10, 
                     category=dpg.mvThemeCat_Core
                 )
-
                 dpg.add_theme_style(
                     dpg.mvStyleVar_FrameBorderSize, 
                     x=1,
                     category=dpg.mvThemeCat_Core
                 )
-
                 dpg.add_theme_style(
                     dpg.mvStyleVar_FramePadding, 
                     x=12,
                     y=4,
                     category=dpg.mvThemeCat_Core
                 )
-
                 dpg.add_theme_style(
                     dpg.mvStyleVar_FrameRounding,
                     x=2,
                     category=dpg.mvThemeCat_Core
                 )
-
                 dpg.add_theme_style(
                     dpg.mvStyleVar_ItemInnerSpacing, 
                     x=20,
                     category=dpg.mvThemeCat_Core
                 )
-
                 dpg.add_theme_style(
                     dpg.mvStyleVar_ItemSpacing,
                     x=20,
@@ -166,34 +162,72 @@ class GUI():
                     (255, 255, 255), 
                     category=dpg.mvThemeCat_Core
                 )
-
                 dpg.add_theme_color(
                     dpg.mvThemeCol_Text, 
                     (0, 0, 0), 
                     category=dpg.mvThemeCat_Core
                 )
-
                 dpg.add_theme_color(
                     dpg.mvThemeCol_ButtonHovered, 
                     (200, 200, 200), 
                     category=dpg.mvThemeCat_Core
                 )
-
                 dpg.add_theme_color(
                     dpg.mvThemeCol_ButtonActive, 
                     (100, 100, 100), 
                     category=dpg.mvThemeCat_Core
                 )
-
                 dpg.add_theme_color(
                     dpg.mvThemeCol_Border, 
                     (255, 255, 255), 
                     category=dpg.mvThemeCat_Core
                 )
-
                 dpg.add_theme_style(
                     dpg.mvStyleVar_FrameRounding, 
                     100, 
+                    category=dpg.mvThemeCat_Core
+                )
+                dpg.add_theme_style(
+                    dpg.mvStyleVar_ItemSpacing,
+                    x=20,
+                    y=12,
+                    category=dpg.mvThemeCat_Core
+                )
+
+    def set_previewer_theme(self):
+        with dpg.theme() as self.previewer_theme:
+            with dpg.theme_component(dpg.mvAll):
+                dpg.add_theme_color(
+                    dpg.mvThemeCol_WindowBg, 
+                    value=(0, 0, 0), 
+                    category=dpg.mvThemeCat_Core
+                )
+                dpg.add_theme_color(
+                    dpg.mvThemeCol_TitleBgActive,
+                    value=(100, 0, 100),
+                    category=dpg.mvThemeCat_Core
+                )
+                dpg.add_theme_style(
+                    dpg.mvStyleVar_FrameRounding, 
+                    x=5, 
+                    category=dpg.mvThemeCat_Core
+                )
+                dpg.add_theme_style(
+                    dpg.mvStyleVar_WindowPadding, 
+                    x=15, 
+                    y=10, 
+                    category=dpg.mvThemeCat_Core
+                )
+                dpg.add_theme_style(
+                    dpg.mvStyleVar_FramePadding, 
+                    x=12,
+                    y=4,
+                    category=dpg.mvThemeCat_Core
+                )
+                dpg.add_theme_style(
+                    dpg.mvStyleVar_ItemSpacing,
+                    x=20,
+                    y=16,
                     category=dpg.mvThemeCat_Core
                 )
 
@@ -210,6 +244,9 @@ class GUI():
         self.run_inspector()
         self.metrics_view()
         self.individual_preview()
+
+        # State popups
+        self.simulation_in_progress_popup()
 
         # Incorrect use warnings
         self.duplicate_selection_popup()
@@ -373,14 +410,23 @@ class GUI():
                             height=320,
                             anti_aliased=True,
                             no_mouse_pos=True,
+                            
                         ):
                         dpg.add_plot_axis(
-                            tag='axis_mean_fitness',
+                            label='Generation',
+                            tag='x_axis_mean_fitness',
                             axis=0,
                             lock_min=True,
                         )
+                        dpg.add_plot_axis(
+                            label='Fitness',
+                            tag='y_axis_mean_fitness',
+                            axis=1,
+                            lock_min=True,
+                        )
                         dpg.add_plot_legend(
-                            label='binance'
+                            parent='plot_mean_fitness',
+                            location=dpg.mvPlot_Location_SouthEast,
                         )
 
 
@@ -398,12 +444,18 @@ class GUI():
                             no_mouse_pos=True,
                         ):
                         dpg.add_plot_axis(
-                            tag='axis_median_fitness',
+                            tag='x_axis_median_fitness',
                             axis=0,
                             lock_min=True,
                         )
+                        dpg.add_plot_axis(
+                            label='Fitness',
+                            tag='y_axis_median_fitness',
+                            axis=1,
+                            lock_min=True,
+                        )
                         dpg.add_plot_legend(
-                            label='binance'
+                            location=dpg.mvPlot_Location_SouthEast,
                         )
 
                 with dpg.collapsing_header(
@@ -420,12 +472,19 @@ class GUI():
                             no_mouse_pos=True,
                         ):
                         dpg.add_plot_axis(
-                            tag='axis_cutoff_fitness',
+                            tag='x_axis_cutoff_fitness',
                             axis=0,
                             lock_min=True,
                         )
+                        dpg.add_plot_axis(
+                            label='Fitness',
+                            tag='y_axis_cutoff_fitness',
+                            axis=1,
+                            lock_min=True,
+                        )
                         dpg.add_plot_legend(
-                            label='binance'
+                            location=dpg.mvPlot_Location_SouthEast,
+                            drop_callback=None
                         )
 
             with dpg.collapsing_header(
@@ -477,6 +536,11 @@ class GUI():
                 callback=self.run_simulation
             )
 
+        dpg.bind_item_theme(
+            'win_previewer',
+            self.previewer_theme
+        )
+
     def duplicate_selection_popup(self):
         with dpg.window(
                 label='Warning: Duplicate run',
@@ -494,6 +558,17 @@ class GUI():
                     user_data='win_duplicate_run_warning',
                     pos=[120, 70]
                 )
+
+    def simulation_in_progress_popup(self):
+        with dpg.window(
+                    label='Simulation in progress',
+                    tag='win_sim_in_prog',
+                    width=200,
+                    height=100,
+                    modal=True,
+                    show=False
+                ):
+            pass
 
     """
         Callbacks
@@ -543,9 +618,7 @@ class GUI():
             dpg.show_item('win_previewer')
 
         items = dpg.get_item_configuration('cmb_individual_select')['items']
-        # run = dpg.get_value('cmb_run_select')
-        # generation = dpg.get_value('cmb_generation_select')
-        # items.append(f'{run} {generation} {user_data}')
+
         items.append(f'{user_data}')
 
         dpg.configure_item(
@@ -616,25 +689,19 @@ class GUI():
                 dpg.hide_item(f'ls_{user_data}-{metric}')
 
     def run_simulation(self):
-        print("SIMULATING")
-        
+        dpg.show_item('win_sim_in_prog')
+
         self.previewer.genome = dpg.get_value('cmb_individual_select')
-        print(self.previewer.genome)
-        print(type(self.previewer.genome))
         self.previewer.create_individual()
         self.previewer.create_environment()
         self.previewer.simulate()
 
-    def update_simulation_config(self, sender, app_data, user_data):
-        print(user_data)
-        print(add_data)
+        dpg.hide_item('win_sim_in_prog')
 
+    def update_simulation_config(self, sender, app_data, user_data):
         value = dpg.get_value(sender)
-        print(value)
-        print(self.previewer.cfg)
         self.previewer.cfg[user_data[0]][user_data[1]] = value
-        print(self.previewer.cfg)
-        print('')
+
 
     """
         State functions
@@ -745,8 +812,9 @@ class GUI():
                             for generation in self.metrics.runs[run].values()]
 
             dpg.add_line_series(
-                parent=f'axis_{metric}',
+                parent=f'x_axis_{metric}',
                 tag=f'ls_{run}-{metric}',
+                label=run,
                 x=list(range(n_generations)),
                 y=value_series
             )
