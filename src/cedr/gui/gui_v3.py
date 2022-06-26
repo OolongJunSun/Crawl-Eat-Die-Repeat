@@ -6,12 +6,16 @@ import dearpygui.dearpygui as dpg
 
 from cedr.utils.analysis import Analyzer
 from cedr.utils.metrics import Metrics
+from cedr.utils.schemata import Schemata
+from individual_preview import Previewer
 
 
 class GUI():
     def __init__(self, maximise: bool) -> None:
         self.analyzer = Analyzer()
         self.metrics = Metrics()
+        self.schemata = Schemata()
+        self.previewer = Previewer()
 
         self.current_visible_table = None
 
@@ -19,6 +23,7 @@ class GUI():
         self.dear_pygui_configuration(maximise)
         
         self.initialize_windows()
+        self.initialize_handlers()
 
         self.start_render_loop()
 
@@ -82,6 +87,15 @@ class GUI():
                 dpg.show_item('tgl_all')
             else:
                 dpg.hide_item('tgl_all')
+
+    def show_or_hide_previewer_tooltip(self):
+        # previewer_state = dpg.get_item_configuration('win_previewer')
+        # previewer_shown = previewer_state['show']
+
+        # if not previewer_shown: 
+        #     with dpg.tooltip(f'{individual.genome}'):
+        #         dpg.add_text('Click to add to previewer')
+        pass
 
 
     """
@@ -194,9 +208,13 @@ class GUI():
         self.intro_window()
         self.run_inspector()
         self.metrics_view()
+        self.individual_preview()
 
         # Incorrect use warnings
         self.duplicate_selection_popup()
+
+    def initialize_handlers(self):
+        self.genome_hover_handler()
 
     def menu_bar(self):
          with dpg.viewport_menu_bar():
@@ -279,7 +297,6 @@ class GUI():
                     'btn_generate_metrics',
                     self.important_btn_theme
                 )
-
                 dpg.add_progress_bar(
                     label='Progress = X',
                     tag='prg_generate_metrics',
@@ -422,6 +439,32 @@ class GUI():
                     ):
                 pass
 
+    def individual_preview(self):
+        with dpg.window(
+                    label='Previewer',
+                    tag='win_previewer',
+                    show=False,
+                    autosize=True
+                ):
+            
+            dpg.add_combo(
+                label='Selected Individul',
+                tag='cmb_individual_select',
+                width=700,
+                callback=None,
+                items=[]
+            )
+            with dpg.collapsing_header(
+                        label='Simulation configuration',
+                        tag='ch_sim_cfg'
+                    ):
+                dpg.add_text('Placeholder text for now')
+
+            dpg.add_button(
+                label='Run',
+                tag='btn_run_simulation',
+                callback=self.run_simulation
+            )
 
     def duplicate_selection_popup(self):
         with dpg.window(
@@ -482,8 +525,23 @@ class GUI():
         self.update_run_table(app_data)
 
     def individual_select(self, sender, app_data, user_data):
-        pass
+        window_state = dpg.get_item_configuration('win_previewer')
+        window_shown = window_state['show']
 
+        if not window_shown:
+            dpg.show_item('win_previewer')
+
+        items = dpg.get_item_configuration('cmb_individual_select')['items']
+        # run = dpg.get_value('cmb_run_select')
+        # generation = dpg.get_value('cmb_generation_select')
+        # items.append(f'{run} {generation} {user_data}')
+        items.append(f'{user_data}')
+
+        dpg.configure_item(
+            'cmb_individual_select', 
+            items=items
+        )
+        
     def toggle_all(self, sender):
         runs = self.metrics.runs
 
@@ -504,8 +562,6 @@ class GUI():
                 user_data=run
             )
             print(callback)
-
-
 
     def calculate_run_metrics(self):
         dpg.show_item('prg_generate_metrics')
@@ -547,6 +603,16 @@ class GUI():
                 dpg.show_item(f'ls_{user_data}-{metric}')
             else:
                 dpg.hide_item(f'ls_{user_data}-{metric}')
+
+    def run_simulation(self):
+        print("SIMULATING")
+        
+        self.previewer.genome = dpg.get_value('cmb_individual_select')
+        print(self.previewer.genome)
+        print(type(self.previewer.genome))
+        self.previewer.create_individual()
+        self.previewer.create_environment()
+        self.previewer.simulate()
 
     """
         State functions
@@ -601,18 +667,24 @@ class GUI():
                     pad_outerX=True,
                     show=True
                 ):
-            dpg.add_table_column(label="Rank", width_fixed=True)
-            dpg.add_table_column(label="Genome")
-            dpg.add_table_column(label="Fitness", width_fixed=True)
+            dpg.add_table_column(label='Rank', width_fixed=True)
+            dpg.add_table_column(label='Genome')
+            dpg.add_table_column(label='Fitness', width_fixed=True)
             for rank, individual in enumerate(population):
                 with dpg.table_row(parent=f'tbl_{selected_run}-{generation}'):
-                    dpg.add_text(f"{int(rank)+1}")
+                    dpg.add_text(f'{int(rank)+1}')
                     dpg.add_button(
-                        label=f"{individual.genome}", 
+                        tag=f'{individual.genome}',
+                        label=f'{individual.genome}', 
                         callback=self.individual_select, 
                         user_data=individual.genome
                     )
                     dpg.add_text(f"{round(float(individual.fitness),2)}")
+
+                # dpg.bind_item_handler_registry(
+                #     f'{individual.genome}',
+                #     'hndler_genome_hover'
+                # )
 
         self.current_visible_table = f'tbl_{selected_run}-{generation}'
 
@@ -636,8 +708,8 @@ class GUI():
             enabled=True,
             default_value=True,
             label=list(self.analyzer.runs.keys())[-1],
-            tag=f"cb_enable_box_{run}",
-            parent=f"enable_box_row-{self.enable_box_row}",
+            tag=f'cb_enable_box_{run}',
+            parent=f'enable_box_row-{self.enable_box_row}',
             callback=self.toggle_run_metrics,
             user_data=run
         )
@@ -657,7 +729,23 @@ class GUI():
                 y=value_series
             )
 
+    def show_genome_preview(self, sender):
+        print(sender)
+        with dpg.tooltip(sender):
+            dpg.add_text("A tooltip")
 
+        print('hovered')
+        # with dpg.window(label="TEST"):
+        #     pass
+
+    """
+        Handlers
+    """
+    def genome_hover_handler(self):
+        with dpg.item_handler_registry(tag="hndler_genome_hover"):
+            dpg.add_item_hover_handler(callback=self.show_genome_preview)
+
+       
 
 if __name__ == '__main__':
     gui = GUI(True)
