@@ -59,6 +59,7 @@ class Metrics():
                    "median_fitness": self.generation_stats['median_fitness'],
                    "cutoff_fitness": self.generation_stats['cutoff_fitness'],
                    "mean_diversity": self.generation_stats['mean_diversity'],
+                   'diversity': self.diversity_list
                }
             }
         )

@@ -1,14 +1,16 @@
-from msilib import add_data
 import os
 import sys
 import ctypes
 import time
+import numpy as np
 import dearpygui.dearpygui as dpg
-
+from itertools import combinations
 from cedr.utils.analysis import Analyzer
 from cedr.utils.metrics import Metrics
 from cedr.utils.schemata import Schemata
+from cedr.utils.encoding import hex_to_bin
 from individual_preview import Previewer
+
 
 
 class GUI():
@@ -491,7 +493,100 @@ class GUI():
                         label='Diversity',
                         tag='ch_diversity'
                     ):
-                pass
+                with dpg.collapsing_header(
+                        label="Mean diversity",
+                        tag='ch_mean_diversity',
+                        indent=12,
+                    ):
+                    with dpg.plot(
+                            tag='plot_mean_diversity',
+                            width=1030,
+                            height=320,
+                            anti_aliased=True,
+                            no_mouse_pos=True,
+                        ):
+                        dpg.add_plot_axis(
+                            tag='x_axis_mean_diversity',
+                            axis=0,
+                            lock_min=True,
+                        )
+                        dpg.add_plot_axis(
+                            label='Diversity',
+                            tag='y_axis_mean_diversity',
+                            axis=1,
+                            lock_min=True,
+                        )
+                        dpg.add_plot_legend(
+                            location=dpg.mvPlot_Location_SouthEast,
+                            drop_callback=None
+                        )
+
+                with dpg.collapsing_header(
+                        label="Diversity matrix",
+                        tag='ch_diversity_matrix',
+                        indent=12,
+                    ):
+
+                    self.colormaps = [
+                        dpg.mvPlotColormap_Plasma,
+                        dpg.mvPlotColormap_Viridis,
+                        dpg.mvPlotColormap_Pastel,
+                        dpg.mvPlotColormap_Spectral,
+                        dpg.mvPlotColormap_Greys,
+                        dpg.mvPlotColormap_Paired,
+                        dpg.mvPlotColormap_Deep,
+                        dpg.mvPlotColormap_BrBG,
+                        dpg.mvPlotColormap_RdBu,
+                        dpg.mvPlotColormap_Cool,
+                        dpg.mvPlotColormap_Hot,
+                        dpg.mvPlotColormap_Twilight,
+                        dpg.mvPlotColormap_Default
+                    ]
+
+                    self.active_colormap = 0
+
+                    self.previous_heatmap = None
+                    with dpg.group(
+                                tag='heatmap_config_group',
+                                horizontal=True, 
+                                horizontal_spacing=25
+                            ):
+                        dpg.add_slider_int(
+                            label='Generation',
+                            tag='slide_diversity_matrix',
+                            indent=12,
+                            callback=self.generate_diversity_matrix
+                        )
+                        dpg.add_colormap_button(
+                            label='Change colormap',
+                            tag='btn_colormap',
+                            default_value=self.colormaps[self.active_colormap],
+                            callback=self.set_heatmap_colors
+                        )
+                        
+                    with dpg.plot(
+                                tag='plot_diversity_heatmap',
+                                width=640,
+                                height=640,
+                                anti_aliased=False,
+                                no_mouse_pos=True,
+                                equal_aspects=True
+                            ):
+                        dpg.add_plot_axis(
+                            label='Individual',
+                            tag='x_axis_diversity_heatmap',
+                            axis=0,
+                            # lock_min=True,
+                            # lock_max=True
+                        )
+                        dpg.add_plot_axis(
+                            label='Individual',
+                            tag='y_axis_diversity_heatmap',
+                            axis=1,
+                            # lock_min=True,
+                            # lock_max=True
+                        )
+
 
             with dpg.collapsing_header(
                         label='Schemata',
@@ -645,7 +740,6 @@ class GUI():
                 app_data=None,
                 user_data=run
             )
-            print(callback)
 
     def calculate_run_metrics(self):
         dpg.show_item('prg_generate_metrics')
@@ -654,7 +748,8 @@ class GUI():
         self.tracked_metrics = [
             'mean_fitness',
             'median_fitness',
-            'cutoff_fitness'
+            'cutoff_fitness',
+            'mean_diversity'
         ]
 
         for i, (gen, population) in enumerate(self.analyzer.runs[run].items()):
@@ -673,9 +768,16 @@ class GUI():
                 i / (len(self.analyzer.runs[run]) - 1)
             )
 
+        
         self.add_metrics_checkbox()
         self.metrics.add_to_runs(run)
         self.add_line_plots(self.tracked_metrics)
+
+        if dpg.does_item_exist('win_metrics'):
+            dpg.configure_item(
+                'slide_diversity_matrix', 
+                max_value=len(self.analyzer.runs[run])-1
+            )
 
         dpg.hide_item('prg_generate_metrics')
         dpg.show_item('win_metrics')
@@ -702,6 +804,59 @@ class GUI():
         value = dpg.get_value(sender)
         self.previewer.cfg[user_data[0]][user_data[1]] = value
 
+    def generate_diversity_matrix(self, sender):
+        run = dpg.get_value('cmb_run_select')
+        state = dpg.get_value(sender)
+        gen = f'generation-{state}'
+
+        genomes = [individual.genome.replace(' ', '') 
+                   for individual in self.analyzer.runs[run][gen]]
+
+        binary_genes = [np.fromstring(hex_to_bin(genome),'u1') - ord('0') 
+                        for genome in genomes]
+
+        diversity = [np.count_nonzero(base_genome!=comparison_genome) 
+                     for base_genome in binary_genes
+                     for comparison_genome in binary_genes]
+        
+        dpg.add_colormap_scale(
+            colormap=dpg.mvPlotColormap_Plasma,
+            parent='y_axis_diversity_heatmap',
+            pos=[500, 0]
+        )
+
+        if dpg.does_item_exist(self.previous_heatmap):
+            dpg.delete_item(self.previous_heatmap)
+
+        dpg.add_heat_series(
+            label='Heat map',
+            tag=f'hm_diversity-{run}-{gen}',
+            parent='x_axis_diversity_heatmap',
+            x=diversity,
+            scale_min=min(diversity),
+            scale_max=max(diversity),
+            bounds_min=(0,0),
+            bounds_max=(len(genomes),len(genomes)),
+            rows=len(genomes),
+            cols=len(genomes),
+            format='',
+            contribute_to_bounds=False
+        )
+
+        dpg.bind_colormap(
+            item='plot_diversity_heatmap', 
+            source=self.active_colormap
+        )
+
+        self.previous_heatmap = f'hm_diversity-{run}-{gen}'
+
+    def set_heatmap_colors(self, sender):
+        colormap = dpg.get_value(sender)
+
+        self.active_colormap += 1
+
+        dpg.set_value(sender, self.colormaps[self.active_colormap])
+        # self.active_colormap = colormap
 
     """
         State functions
@@ -827,6 +982,8 @@ class GUI():
         print('hovered')
         # with dpg.window(label="TEST"):
         #     pass
+
+
 
     """
         Handlers
