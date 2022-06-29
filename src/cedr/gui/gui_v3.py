@@ -11,7 +11,7 @@ from cedr.utils.schemata import Schemata
 from cedr.utils.encoding import hex_to_bin
 from individual_preview import Previewer
 
-
+import dearpygui.demo as demo
 
 class GUI():
     def __init__(self, maximise: bool) -> None:
@@ -47,8 +47,10 @@ class GUI():
         self.set_global_theme()
         self.set_important_btn_theme()
         self.set_previewer_theme()
-
+        
+        # demo.show_demo()
         # dpg.show_implot_demo()
+        # dpg.show_imgui_demo()
 
         user32 = ctypes.windll.user32
         screen_w = user32.GetSystemMetrics(0) 
@@ -517,7 +519,7 @@ class GUI():
                             lock_min=True,
                         )
                         dpg.add_plot_legend(
-                            location=dpg.mvPlot_Location_SouthEast,
+                            location=dpg.mvPlot_Location_NorthEast,
                             drop_callback=None
                         )
 
@@ -528,26 +530,28 @@ class GUI():
                     ):
 
                     self.colormaps = [
+                        dpg.mvPlotColormap_Default,
                         dpg.mvPlotColormap_Plasma,
                         dpg.mvPlotColormap_Viridis,
                         dpg.mvPlotColormap_Pastel,
-                        dpg.mvPlotColormap_Spectral,
-                        dpg.mvPlotColormap_Greys,
+                        # dpg.mvPlotColormap_Spectral,
+                        # dpg.mvPlotColormap_Greys,
                         dpg.mvPlotColormap_Paired,
                         dpg.mvPlotColormap_Deep,
-                        dpg.mvPlotColormap_BrBG,
-                        dpg.mvPlotColormap_RdBu,
+                        # dpg.mvPlotColormap_BrBG,
+                        # dpg.mvPlotColormap_RdBu,
+                        # dpg.mvPlotColormap_PiYG,
                         dpg.mvPlotColormap_Cool,
                         dpg.mvPlotColormap_Hot,
+                        dpg.mvPlotColormap_Jet,
                         dpg.mvPlotColormap_Twilight,
-                        dpg.mvPlotColormap_Default
                     ]
 
                     self.active_colormap = 0
 
                     self.previous_heatmap = None
                     with dpg.group(
-                                tag='heatmap_config_group',
+                                tag='grp_heatmap_config',
                                 horizontal=True, 
                                 horizontal_spacing=25
                             ):
@@ -559,33 +563,40 @@ class GUI():
                         )
                         dpg.add_colormap_button(
                             label='Change colormap',
+                            width=200,
+                            height=50,
                             tag='btn_colormap',
-                            default_value=self.colormaps[self.active_colormap],
+                            default_value=dpg.mvPlotColormap_Plasma,
                             callback=self.set_heatmap_colors
                         )
-                        
-                    with dpg.plot(
-                                tag='plot_diversity_heatmap',
-                                width=640,
-                                height=640,
-                                anti_aliased=False,
-                                no_mouse_pos=True,
-                                equal_aspects=True
-                            ):
-                        dpg.add_plot_axis(
-                            label='Individual',
-                            tag='x_axis_diversity_heatmap',
-                            axis=0,
-                            # lock_min=True,
-                            # lock_max=True
-                        )
-                        dpg.add_plot_axis(
-                            label='Individual',
-                            tag='y_axis_diversity_heatmap',
-                            axis=1,
-                            # lock_min=True,
-                            # lock_max=True
-                        )
+                    
+                    with dpg.group(
+                        tag='grp_heatmap_display',
+                        horizontal=True,
+                        horizontal_spacing=25
+                    ):
+                        with dpg.plot(
+                                    tag='plot_diversity_heatmap',
+                                    width=640,
+                                    height=640,
+                                    anti_aliased=False,
+                                    no_mouse_pos=True,
+                                    equal_aspects=True
+                                ):
+                            dpg.add_plot_axis(
+                                label='Individual',
+                                tag='x_axis_diversity_heatmap',
+                                axis=0,
+                                # lock_min=True,
+                                # lock_max=True
+                            )
+                            dpg.add_plot_axis(
+                                label='Individual',
+                                tag='y_axis_diversity_heatmap',
+                                axis=1,
+                                # lock_min=True,
+                                # lock_max=True
+                            )
 
 
             with dpg.collapsing_header(
@@ -675,20 +686,30 @@ class GUI():
     def explorer_select(self, sender, app_data, user_data):
         dpg.hide_item('win_intro')
 
+
+        print('--------------------------------------------------')
         if self.current_visible_table:
             dpg.hide_item(self.current_visible_table)
 
-        path = app_data['current_path']
-        run_name = path.split('\\')[-1]
+        for path in app_data['selections'].values():
+            
+        
+            formtatted_path = '\\'.join(path.split('\\')[:-2])
+            run_name = path.split('\\')[-1]
 
-        time.sleep(0.02)
-        if run_name in dpg.get_item_configuration('cmb_run_select')['items']:
-            self.position_and_show_popup('win_duplicate_run_warning')
-        else:
-            self.analyzer.load_run(path, run_name)
+            formtatted_path = os.path.join(formtatted_path, run_name)
+            print(formtatted_path)
+            print(run_name)
 
-        self.update_run_selector()
-        self.update_generation_selector(run_name)
+            print('')
+            time.sleep(0.02)
+            if run_name in dpg.get_item_configuration('cmb_run_select')['items']:
+                self.position_and_show_popup('win_duplicate_run_warning')
+            else:
+                self.analyzer.load_run(formtatted_path, run_name)
+
+            self.update_run_selector()
+            self.update_generation_selector(run_name)
 
         dpg.show_item('win_runs')
 
@@ -809,6 +830,8 @@ class GUI():
         state = dpg.get_value(sender)
         gen = f'generation-{state}'
 
+
+
         genomes = [individual.genome.replace(' ', '') 
                    for individual in self.analyzer.runs[run][gen]]
 
@@ -818,11 +841,18 @@ class GUI():
         diversity = [np.count_nonzero(base_genome!=comparison_genome) 
                      for base_genome in binary_genes
                      for comparison_genome in binary_genes]
-        
+
+        if dpg.does_item_exist('heatmap_scale'):
+            dpg.delete_item('heatmap_scale')
+
         dpg.add_colormap_scale(
-            colormap=dpg.mvPlotColormap_Plasma,
-            parent='y_axis_diversity_heatmap',
-            pos=[500, 0]
+            tag='heatmap_scale',
+            colormap=self.colormaps[self.active_colormap],
+            parent='grp_heatmap_display',
+            height=640,
+            width=100,
+            min_scale=0,
+            max_scale=125
         )
 
         if dpg.does_item_exist(self.previous_heatmap):
@@ -833,8 +863,8 @@ class GUI():
             tag=f'hm_diversity-{run}-{gen}',
             parent='x_axis_diversity_heatmap',
             x=diversity,
-            scale_min=min(diversity),
-            scale_max=max(diversity),
+            scale_min=0,
+            scale_max=125,
             bounds_min=(0,0),
             bounds_max=(len(genomes),len(genomes)),
             rows=len(genomes),
@@ -843,20 +873,33 @@ class GUI():
             contribute_to_bounds=False
         )
 
-        dpg.bind_colormap(
-            item='plot_diversity_heatmap', 
-            source=self.active_colormap
+        dpg.configure_item(
+            item='plot_diversity_heatmap',
+            label=f'{run} {gen}'
         )
+        # dpg.bind_colormap(
+        #     item='plot_diversity_heatmap', 
+        #     source=self.active_colormap
+        # )
 
         self.previous_heatmap = f'hm_diversity-{run}-{gen}'
 
     def set_heatmap_colors(self, sender):
-        colormap = dpg.get_value(sender)
-
         self.active_colormap += 1
+        self.active_colormap = self.active_colormap % len(self.colormaps)
 
-        dpg.set_value(sender, self.colormaps[self.active_colormap])
-        # self.active_colormap = colormap
+        dpg.bind_colormap(sender, self.colormaps[self.active_colormap])
+        dpg.bind_colormap(
+            item='plot_diversity_heatmap', 
+            source=self.colormaps[self.active_colormap]
+        )
+
+        print(self.active_colormap)
+
+        dpg.configure_item(
+            item='heatmap_scale',
+            colormap=self.colormaps[self.active_colormap]
+        )
 
     """
         State functions
@@ -918,7 +961,7 @@ class GUI():
                 with dpg.table_row(parent=f'tbl_{selected_run}-{generation}'):
                     dpg.add_text(f'{int(rank)+1}')
                     dpg.add_button(
-                        tag=f'{individual.genome}',
+                        tag=f'{generation}_{rank}_{individual.genome}',
                         label=f'{individual.genome}', 
                         callback=self.individual_select, 
                         user_data=individual.genome

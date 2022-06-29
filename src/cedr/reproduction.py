@@ -3,13 +3,13 @@ from typing import List, Tuple
 
 
 class Reproducer():
-    def __init__(self, cfg, seed, cohort) -> None:
+    def __init__(self, cfg, cohort) -> None:
         self.cfg = cfg
         self.methods = {
             "n-point": self.n_point_crossover
         }
         self.cohort = cohort
-        self.rng = random.Random(seed)
+        self.rng = random.Random(cfg['seed'])
 
     def single_point_crossover(self, pair: Tuple[str]) -> List[str]:
         assert len(pair[0]) == len(pair[1])

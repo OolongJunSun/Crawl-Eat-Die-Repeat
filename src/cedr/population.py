@@ -4,30 +4,29 @@ from individual import BasicProtein
 
 
 class Population():
-    def __init__(self, cfg, seed) -> None:
+    def __init__(self, cfg) -> None:
         self.cfg = {}
         for key in cfg:
             self.cfg.update({key: cfg[key]})
 
-        self.seed = seed
-
     def init_gene_pool(self) -> None:
-        pool_length = self.cfg["n_individuals"] * self.cfg["n_alleles"] * self.cfg["allele_length"]
+        pool_length = self.cfg["n-individuals"] * self.cfg["n-alleles"] * self.cfg["allele-length"]
 
-        rng = random.Random(self.seed)
+        rng = random.Random(self.cfg['seed'])
 
         self.gene_pool = f'%0{pool_length}x' % rng.randrange(int(16**pool_length))
 
     def individuate_genomes(self) -> None:
-        genome_length = self.cfg["n_alleles"] * self.cfg["allele_length"]
+        genome_length = self.cfg["n-alleles"] * self.cfg["allele-length"]
 
-        self.genomes = [self.gene_pool[i:i+genome_length] for i in range(0, len(self.gene_pool), genome_length)]
+        self.genomes = [self.gene_pool[i:i+genome_length] 
+                        for i in range(0, len(self.gene_pool), genome_length)]
 
     def generate_individuals(self) -> None:
         self.cohort = {}
 
         for genome in self.genomes:
-            genes = ' '.join(genome[i:i+self.cfg["allele_length"]] for i in range(0, len(genome), self.cfg["allele_length"]))
+            genes = ' '.join(genome[i:i+self.cfg["allele-length"]] for i in range(0, len(genome), self.cfg["allele-length"]))
 
             individual = BasicProtein(genes, str(uuid.uuid4()))
 

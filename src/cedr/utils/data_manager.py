@@ -6,15 +6,35 @@ pp = pprint.PrettyPrinter(indent=4)
 
 
 class Manager():
-    def __init__(self) -> None:
+    def __init__(self, cfg, vars) -> None:
+        self.cfg = cfg
+
+        # run_name = self.cfg['run']['name'].replace(' ','_')
+        # run_details = self.cfg['run']['details'].replace(' ','_')
+
         current_time = str(datetime.now())
-        self.formatted_time = current_time.replace(" ", "_").replace(":", "-").split(".")[0]
+        if self.cfg['run']['24-hour-time'] == 'True':
+            self.formatted_time = current_time.replace(" ", "_") \
+                                              .replace(":", "-") \
+                                              .split(".")[0]
+        else: 
+            self.formatted_time = current_time.split(' ')[0]
+
+        run_name = self.formatted_time
+
+        for val, key in zip(vars[0], vars[1]):
+            run_name += f'_{val}-{key}'
+
+        self.folder_name = run_name
+
+    def format_run_name(self):
+        pass
 
     def make_output_dir(self, n=None):
         if isinstance(n, int):
-            output_folder = f"runs\\{self.formatted_time}\\generation-{n}"
+            output_folder = f"runs\\{self.folder_name}\\generation-{n}"
         else:
-            output_folder = f"runs\\{self.formatted_time}"
+            output_folder = f"runs\\{self.folder_name}"
 
         self.output_path = os.path.join(os.getcwd(), output_folder)
 
@@ -24,9 +44,9 @@ class Manager():
             print("Output folder for this run already exists.")
 
 
-    def save_run_config(self, cfg):
+    def save_run_config(self):
         with open(f"{self.output_path}\\cfg.txt", "w") as f:
-            for key, value in cfg.items():
+            for key, value in self.cfg.items():
                 f.write(f"{str(key)} {str(value)}\n")
 
 

@@ -28,21 +28,24 @@ class Analyzer():
         })
 
         for folder in os.listdir(path):
-
+            print(folder)
             if 'cfg' in folder:
                 pass
                 # self.runs['run_name'].update(
 
                 # )
             elif 'generation' in folder:
-
                 ind_file = os.path.join(path, folder, 'individuals.txt')
-                lines = self.read_generation(ind_file)
-                individuals = self.format_generation(lines)
+                
+                try:
+                    lines = self.read_generation(ind_file)
+                    individuals = self.format_generation(lines)
 
-                self.runs[run_name].update({
-                    folder: individuals
-                })
+                    self.runs[run_name].update({
+                        folder: individuals
+                    })
+                except FileNotFoundError:
+                    pass
 
                 # for rank, individual in enumerate(individuals):
                 #     self.runs[run_name][folder].update({

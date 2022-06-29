@@ -36,7 +36,7 @@ class Metrics():
 
     def population_diversity(self, genomes: List[str]) -> None:        
         genomes = [genome.replace(" ", "") for genome in genomes]
-        binary_genes = [np.fromstring(hex_to_bin(genome),'u1') - ord('0') for genome in genomes]
+        binary_genes = [np.fromstring(hex_to_bin(genome[7:]),'u1') - ord('0') for genome in genomes]
 
         diversity_list = [
             np.sum([np.count_nonzero(base_genome!=comparison_genome) for base_genome in binary_genes]) / len(genomes)

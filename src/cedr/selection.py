@@ -2,13 +2,13 @@ import numpy as np
 from typing import List, Tuple
 
 class Selector():
-    def __init__(self, cfg, seed) -> None:
+    def __init__(self, cfg) -> None:
         self.cfg = cfg
         self.methods = {
             "truncation": self.truncation
         }
-        self.pairs_per_individual = int(1 / cfg["survival_rate"])
-        self.rng = np.random.RandomState(seed)
+        self.pairs_per_individual = int(1 / cfg["survival-rate"])
+        self.rng = np.random.RandomState(self.cfg['seed'])
 
     def form_pairs_randomly(self, individuals) -> List[Tuple]:
         pairs: List[Tuple] = []
@@ -25,7 +25,7 @@ class Selector():
         return pairs
 
     def truncation(self, individuals: List[str]) -> List[str]:
-        n_breeders = int(len(individuals)*self.cfg["survival_rate"])
+        n_breeders = int(len(individuals)*self.cfg["survival-rate"])
 
         # We always want an even number of breeding individuals
         if n_breeders % 2 != 0:

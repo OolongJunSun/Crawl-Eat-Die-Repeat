@@ -10,14 +10,14 @@ class SimpleHabitat():
         self.WIDTH, self.HEIGHT = cfg["width"], cfg["height"]
 
         self.space = pymunk.Space()
-        self.space.gravity = (cfg["gravity_x"], cfg["gravity_y"])
+        self.space.gravity = (cfg["gravity-x"], cfg["gravity-y"])
         self.fps = cfg["FPS"]
         self.dt = 1/self.fps
 
-        self.substrate_density = cfg["substrate_density"]
-        self.particle_density = cfg["particle_density"]
-        self.particle_radius = cfg["particle_radius"]
-        self.v_init = cfg["particle_velocity"]
+        self.substrate_density = cfg["substrate-density"]
+        self.particle_density = cfg["particle-density"]
+        self.particle_radius = cfg["particle-radius"]
+        self.v_init = cfg["particle-velocity"]
 
         self.particles = []
 
