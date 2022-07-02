@@ -89,7 +89,7 @@ if __name__ == "__main__":
         reproduction = Reproducer(cfg["crossover"], population.cohort)
         mutation = Mutator(cfg["mutation"])
 
-        pool = multiprocessing.Pool(processes=3, initializer=start_process)
+        pool = multiprocessing.Pool(processes=6, initializer=start_process)
 
         for generation in range(cfg["species"]["n-generations"]):
             io_manager.make_output_dir(generation)

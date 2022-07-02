@@ -2,6 +2,7 @@ import os
 import sys
 import ctypes
 import time
+from matplotlib.pyplot import title
 import numpy as np
 import dearpygui.dearpygui as dpg
 from itertools import combinations
@@ -46,6 +47,7 @@ class GUI():
 
         self.set_global_theme()
         self.set_important_btn_theme()
+        # self.set_menubar_items_theme()
         self.set_previewer_theme()
         
         # demo.show_demo()
@@ -66,8 +68,9 @@ class GUI():
 
     def start_render_loop(self):
         while dpg.is_dearpygui_running():
-            self.dynamically_position_intro_window()
+            self.dynamically_position_primary_window()
             self.show_or_hide_toggle_all_checkbox()
+            self.resize_sidebar()
 
             dpg.render_dearpygui_frame()
 
@@ -76,18 +79,19 @@ class GUI():
     """
         Render loop functions
     """
-    def dynamically_position_intro_window(self):
-        if dpg.does_item_exist('win_intro'):
-            width = 950
-            height = 150
+    def dynamically_position_primary_window(self):
+        if dpg.is_item_visible('win_primary'):
+            self.viewport_width = dpg.get_viewport_width() - 40
+            self.viewport_height = dpg.get_viewport_height() - 86
 
-            self.viewport_width = dpg.get_viewport_width()
-            self.viewport_height = dpg.get_viewport_height()
+            y = dpg.get_item_height('menu_bar') + 15
 
-            x = self.viewport_width // 2 - width // 2
-            y = self.viewport_height // 2 - height // 2
-
-            dpg.configure_item('win_intro',pos=(x,y))
+            dpg.configure_item(
+                item='win_primary', 
+                width=self.viewport_width,
+                height=self.viewport_height, 
+                pos=(7,y)
+            )
 
     def show_or_hide_toggle_all_checkbox(self):
         if dpg.does_item_exist('ch_select') and dpg.does_item_exist('tgl_all'):
@@ -105,58 +109,140 @@ class GUI():
         #         dpg.add_text('Click to add to previewer')
         pass
 
+    def resize_sidebar(self):
+        if dpg.is_item_visible('win_sidebar'):
+            dpg.configure_item(
+                item='win_sidebar', 
+                height=dpg.get_viewport_height()-dpg.get_item_height('menu_bar')
+            )
 
     """
         GUI Styling
     """
     def set_global_theme(self):
+        self.global_window_padding_x = 15
+        self.global_window_padding_y = 10
+        self.global_frame_padding_x = 0
+        self.global_frame_padding_y = 6
         with dpg.theme() as global_theme:
             with dpg.theme_component(dpg.mvAll):
+                dpg.add_theme_color(
+                    dpg.mvThemeCol_MenuBarBg, 
+                    value=(0, 0, 0), 
+                    category=dpg.mvThemeCat_Core
+                )        
                 dpg.add_theme_color(
                     dpg.mvThemeCol_WindowBg, 
                     value=(0, 0, 0), 
                     category=dpg.mvThemeCat_Core
                 )
                 dpg.add_theme_style(
-                    dpg.mvStyleVar_FrameRounding, 
-                    x=5, 
+                    dpg.mvStyleVar_WindowBorderSize, 
+                    x=0,
                     category=dpg.mvThemeCat_Core
-                )
+                )                
                 dpg.add_theme_style(
                     dpg.mvStyleVar_WindowPadding, 
-                    x=15, 
-                    y=10, 
-                    category=dpg.mvThemeCat_Core
-                )
-                dpg.add_theme_style(
-                    dpg.mvStyleVar_FrameBorderSize, 
-                    x=1,
+                    x=self.global_window_padding_x,
+                    y=self.global_window_padding_y,
                     category=dpg.mvThemeCat_Core
                 )
                 dpg.add_theme_style(
                     dpg.mvStyleVar_FramePadding, 
-                    x=12,
-                    y=4,
-                    category=dpg.mvThemeCat_Core
-                )
-                dpg.add_theme_style(
-                    dpg.mvStyleVar_FrameRounding,
-                    x=2,
-                    category=dpg.mvThemeCat_Core
-                )
-                dpg.add_theme_style(
-                    dpg.mvStyleVar_ItemInnerSpacing, 
-                    x=20,
-                    category=dpg.mvThemeCat_Core
-                )
-                dpg.add_theme_style(
-                    dpg.mvStyleVar_ItemSpacing,
-                    x=20,
-                    y=12,
+                    x=self.global_frame_padding_x,
+                    y=self.global_frame_padding_y,
                     category=dpg.mvThemeCat_Core
                 )
 
         dpg.bind_theme(global_theme)      
+
+    @staticmethod
+    def apply_menubar_items_theme(item):
+        with dpg.theme() as item_theme:
+            with dpg.theme_component(dpg.mvAll):     
+                dpg.add_theme_style(
+                    dpg.mvStyleVar_WindowPadding, 
+                    x=6,
+                    y=4,
+                    category=dpg.mvThemeCat_Core
+                )
+                dpg.add_theme_style(
+                    dpg.mvStyleVar_FramePadding, 
+                    x=0,
+                    category=dpg.mvThemeCat_Core
+                )
+
+        dpg.bind_item_theme(item, item_theme)
+
+    @staticmethod
+    def apply_primary_window_theme(item):
+        with dpg.theme() as item_theme:
+            with dpg.theme_component(dpg.mvAll):  
+                dpg.add_theme_style(
+                    dpg.mvStyleVar_WindowBorderSize, 
+                    x=1,
+                    category=dpg.mvThemeCat_Core
+                )             
+                dpg.add_theme_style(
+                    dpg.mvStyleVar_WindowRounding, 
+                    x=12,
+                    category=dpg.mvThemeCat_Core
+                )        
+
+        dpg.bind_item_theme(item, item_theme)
+
+    @staticmethod
+    def apply_child_window_theme(item):
+        with dpg.theme() as item_theme:
+            with dpg.theme_component(dpg.mvAll):  
+                dpg.add_theme_style(
+                    dpg.mvStyleVar_ChildRounding, 
+                    x=12, y=6,
+                    category=dpg.mvThemeCat_Core
+                )        
+                dpg.add_theme_color(
+                    dpg.mvThemeCol_ChildBg, 
+                    value=(0, 0, 0), 
+                    category=dpg.mvThemeCat_Core
+                )
+
+        dpg.bind_item_theme(item, item_theme)    
+
+    @staticmethod
+    def apply_group_theme(item):
+        with dpg.theme() as item_theme:
+            with dpg.theme_component(dpg.mvAll):
+                pass
+
+
+            dpg.bind_item_theme(item, item_theme)
+
+    @staticmethod
+    def apply_tab_bar_theme(item):
+        with dpg.theme() as item_theme:
+            with dpg.theme_component(dpg.mvAll):
+
+                dpg.add_theme_style(
+                    dpg.mvStyleVar_FramePadding, 
+                    x=20,
+                    category=dpg.mvThemeCat_Core
+                )
+
+        dpg.bind_item_theme(item, item_theme)
+
+    @staticmethod
+    def apply_tab_theme(item):
+        with dpg.theme() as item_theme:
+            with dpg.theme_component(dpg.mvAll):
+
+                dpg.add_theme_style(
+                    dpg.mvStyleVar_TabRounding, 
+                    x=4,
+                    category=dpg.mvThemeCat_Core
+                )
+
+        dpg.bind_item_theme(item, item_theme)
+
 
     def set_important_btn_theme(self):
         with dpg.theme() as self.important_btn_theme:
@@ -241,6 +327,7 @@ class GUI():
     def initialize_windows(self):
         # Navigation
         self.menu_bar()
+        self.side_bar()
         self.file_explorer()
 
         # Core windows
@@ -259,18 +346,32 @@ class GUI():
         self.genome_hover_handler()
 
     def menu_bar(self):
-         with dpg.viewport_menu_bar():
-            with dpg.menu(label="File"):
+        with dpg.viewport_menu_bar(tag='menu_bar'):
+            with dpg.menu(label="File", tag='mb_file'):
                 dpg.add_menu_item(
-                    label="File Explorer", 
+                    label="File Explorer", tag='mb_file_explorer',
                     callback=lambda: dpg.show_item("win_file_explorer")
                 )
-                dpg.add_menu_item(label="Quit", callback=self.exit)   
+                dpg.add_menu_item(
+                    label="Quit", tag='mb_quit', 
+                    callback=self.exit
+                )
+            with dpg.menu(label="View", tag='mb_view'):
+                dpg.add_menu_item(
+                    label="Show sidebar", tag='mb_show_sidebar',
+                    callback=self.toggle_sidebar
+                )
 
-    @staticmethod
-    def intro_window():
-        width = 950
-        height = 150
+        self.apply_menubar_items_theme('mb_file')
+        self.apply_menubar_items_theme('mb_view')
+
+
+    # @staticmethod
+    def intro_window(self):
+        width = self.viewport_width - 10
+        height = self.viewport_height - dpg.get_item_height('menu_bar') - 80
+
+        y = dpg.get_item_height('menu_bar')
 
         message = ("Welcome!\n"
                    "This is an interactive GUI made for inspecting and "
@@ -278,21 +379,58 @@ class GUI():
                    "To get started, load a population by clicking"
                    "the button below.")    
 
-        btn_x = width // 2 - 60
-        btn_y = height // 1.5
-
         with dpg.window(
-                    label="Introduction", tag="win_intro",
-                    width=width, height=height, no_resize=True,
+                    tag='win_primary',
+                    width=width, height=height, pos=[5,y], 
+                    no_resize=True, no_title_bar=True,
                     no_collapse=True, no_close=True, no_move=True
                 ):
-            dpg.add_text(message)
-            dpg.add_button(
-                label="Load population",
-                tag="btn_intro",
-                pos=(btn_x, btn_y), 
-                callback=lambda: dpg.show_item("win_file_explorer")
-            )
+            with dpg.tab_bar(tag='tb_primary_window'):
+                with dpg.tab(label=' Introduction ', tag='tab_intro'):
+                    with dpg.group(horizontal=True, horizontal_spacing=20):
+                        dpg.add_spacer(width=0)
+                        with dpg.group(
+                                    tag='grp_intro_dialogue', 
+                                    width=600
+                                ):
+                            dpg.add_spacer(height=20)
+                            with dpg.child_window( 
+                                        tag='child_win_intro',
+                                        height=400
+                                    ):
+                                dpg.add_text(message, wrap=600)
+                                dpg.add_button(
+                                    label='Load population',
+                                    tag='btn_intro',
+                                    callback=lambda: dpg.show_item('win_file_explorer')
+                                )
+                with dpg.tab(label=' TESTING ', tag='tab_TESTING'):
+                    pass
+
+        self.apply_primary_window_theme('win_primary')
+        self.apply_group_theme('grp_intro_dialogue')
+        self.apply_child_window_theme('child_win_intro')
+        self.apply_tab_bar_theme('tb_primary_window')
+        self.apply_tab_theme('tab_intro')
+        self.apply_tab_theme('tab_TESTING')
+
+    def side_bar(self):
+        x = 0
+        y = dpg.get_item_configuration('menu_bar')['height'] + 2
+
+        width = 200
+        height = self.viewport_height - y - 80
+
+        with dpg.window(
+                    label='Side bar', tag='win_sidebar',
+                    width=width, height=height,
+                    pos=[x,y], show=False,
+                    no_title_bar=True, no_collapse=True,
+                    no_resize=True, no_move=True
+                ):
+            with dpg.tree_node(label='COCK'):
+                pass
+         
 
     def file_explorer(self):
         with dpg.file_dialog(
@@ -579,7 +717,7 @@ class GUI():
                                     tag='plot_diversity_heatmap',
                                     width=640,
                                     height=640,
-                                    anti_aliased=False,
+                                    anti_aliased=True,
                                     no_mouse_pos=True,
                                     equal_aspects=True
                                 ):
@@ -683,25 +821,22 @@ class GUI():
     def exit():
         sys.exit(0)
 
+    @staticmethod
+    def toggle_sidebar():
+        dpg.show_item('win_sidebar')
+
     def explorer_select(self, sender, app_data, user_data):
-        dpg.hide_item('win_intro')
+        dpg.hide_item('win_primary')
 
-
-        print('--------------------------------------------------')
         if self.current_visible_table:
             dpg.hide_item(self.current_visible_table)
 
         for path in app_data['selections'].values():
-            
-        
             formtatted_path = '\\'.join(path.split('\\')[:-2])
             run_name = path.split('\\')[-1]
 
             formtatted_path = os.path.join(formtatted_path, run_name)
-            print(formtatted_path)
-            print(run_name)
 
-            print('')
             time.sleep(0.02)
             if run_name in dpg.get_item_configuration('cmb_run_select')['items']:
                 self.position_and_show_popup('win_duplicate_run_warning')
@@ -1025,8 +1160,6 @@ class GUI():
         print('hovered')
         # with dpg.window(label="TEST"):
         #     pass
-
-
 
     """
         Handlers

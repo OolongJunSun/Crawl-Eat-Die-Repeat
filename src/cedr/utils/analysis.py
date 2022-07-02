@@ -28,7 +28,6 @@ class Analyzer():
         })
 
         for folder in os.listdir(path):
-            print(folder)
             if 'cfg' in folder:
                 pass
                 # self.runs['run_name'].update(

@@ -1,15 +1,44 @@
 {
+    "run": {
+        "24-hour-time": "False"
+    },
     "environment": {
-        "seed": 101,
-        "run_time": 40,
+        "STATIC": 1,
+        "seed": 1,
+        "run-time": 40,
         "FPS": 60,
         "width": 784,
         "height": 784,
-        "gravity_x": 0,
-        "gravity_y": 0,
-        "substrate_density": 33,
-        "particle_density": 1,
-        "particle_radius": 8.75,
-        "particle_velocity": 1200
+        "gravity-x": 0,
+        "gravity-y": 0,
+        "substrate-density": 33,
+        "particle-density": 1,
+        "particle-radius": 8.75,
+        "particle-velocity": 1200
+    },
+    "species": {
+        "n-generations": 10000
+    },
+    "gene-pool": {
+        "seed": 2,
+        "load-from-checkpoint": "False",
+        "n-individuals": 200,
+        "allele-length": 7,
+        "n-alleles": 9
+    },
+    "selection": {
+        "seed": 3, 
+        "method": "truncation",
+        "survival-rate": 0.2,
+        "elitism-rate": 0.000
+    },
+    "crossover": {
+        "seed": 4,
+        "method": "n-point",
+        "n": 1
+    },
+    "mutation": {
+        "seed": 5,
+        "mutation-rate": 0.01
     }
 }
