@@ -666,7 +666,8 @@ class GUI():
             dpg.add_spacer()
             with dpg.child_window(tag='cwin_selector', parent='grp_main'):
 
-                dpg.add_text('Runs')
+                dpg.add_text('Runs', tag='text_eg')
+                print(dpg.get_item_configuration('text_eg'))
 
                 with dpg.group(
                             tag='grp_list_box_filters',

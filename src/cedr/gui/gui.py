@@ -762,17 +762,17 @@ class GUI():
                         label='Simulation configuration',
                         tag='ch_sim_cfg'
                     ):
-
-                for category in self.previewer.cfg:
-                    for param, value in self.previewer.cfg[category].items():
-                        dpg.add_input_int(
-                            label=param,
-                            tag=f'input_{param}',
-                            default_value=value,
-                            indent=12,
-                            callback=self.update_simulation_config,
-                            user_data=[category, param, value]
-                        )   
+                pass
+                # for category in self.previewer.cfg:
+                #     for param, value in self.previewer.cfg[category].items():
+                #         dpg.add_input_int(
+                #             label=param,
+                #             tag=f'input_{param}',
+                #             default_value=value,
+                #             indent=12,
+                #             callback=self.update_simulation_config,
+                #             user_data=[category, param, value]
+                #         )   
 
             dpg.add_button(
                 label='Run',
